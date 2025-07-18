@@ -1,0 +1,19 @@
+.layout {
+  display: flex;
+  height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.sidebar {
+  width: 280px;
+  background-color: #343a40;
+  color: white;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.chat-area {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}

@@ -29,7 +29,7 @@ frontend/*.local
 # ------------------------------
 backend/__pycache__/
 backend/.pytest_cache/
-backend/*.pyc
+backend/**/*.pyc
 backend/*.pyo
 backend/*.pyd
 backend/.mypy_cache/
@@ -57,3 +57,5 @@ backend/.coverage
 .DS_Store
 Thumbs.db
 
+/holding
+backend/routes/__pycache__/upload.cpython-311.pyc

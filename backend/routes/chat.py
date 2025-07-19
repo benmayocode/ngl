@@ -1,14 +1,15 @@
-# routes/chat.py
-import os
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from pydantic import BaseModel
 from openai import AzureOpenAI
-from typing import List
+from supabase import create_client
+import os
 import numpy as np
+from typing import List
+import json
 
 router = APIRouter()
 
-# Reuse OpenAI client
+# Setup
 client = AzureOpenAI(
     api_key=os.getenv("AZURE_OPENAI_KEY"),
     api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
@@ -18,14 +19,12 @@ client = AzureOpenAI(
 embedding_deployment = os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
 chat_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT")
 
-# Shared in-memory vector store (for now)
-vector_store = []  # TODO: replace with persistent storage later
+supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
-# Data model for request
 class ChatRequest(BaseModel):
     message: str
+    user_email: str  # Required for personalized filtering
 
-# Helpers
 def cosine_similarity(vec1: List[float], vec2: List[float]) -> float:
     a = np.array(vec1)
     b = np.array(vec2)
@@ -33,35 +32,53 @@ def cosine_similarity(vec1: List[float], vec2: List[float]) -> float:
 
 @router.post("/chat")
 async def chat(req: ChatRequest):
-    user_question = req.message
+# async def chat(req: Request):
 
-    # Embed user input
     query_embedding = client.embeddings.create(
         model=embedding_deployment,
-        input=[user_question]
+        input=[req.message]
     ).data[0].embedding
 
-    # Score against all stored chunks
-    scored_chunks = [
-        (cosine_similarity(query_embedding, entry["embedding"]), entry["chunk"])
-        for entry in vector_store
-    ]
-    scored_chunks.sort(reverse=True)
+    # Pull document chunks: global + user-specific
+    response = supabase.table("documents").select("content", "embedding", "doc_type", "user_email").execute()
+    chunks = response.data
 
-    # Prepare context
-    top_chunks = [chunk for score, chunk in scored_chunks[:3]]
+    # Filter: global + user's own docs
+    filtered_chunks = [
+        chunk for chunk in chunks
+        if chunk["doc_type"] == "global" or chunk.get("user_email") == req.user_email
+    ]
+
+    scored = [
+        (
+            cosine_similarity(
+                query_embedding,
+                json.loads(chunk["embedding"])  # <-- convert stringified list to actual list
+            ),
+            chunk["content"]
+        )
+        for chunk in filtered_chunks
+    ]
+    top_chunks = [chunk for score, chunk in sorted(scored, reverse=True)[:3]]
+    
+    print("📚 Top chunks used for context:")
+    for i, chunk in enumerate(top_chunks):
+        print(f"{i+1}. {chunk[:200]}...")  # Print first 200 chars
+
     context = "\n\n".join(top_chunks)
 
-    prompt_messages = [
+    messages = [
         {"role": "system", "content": "You are a helpful assistant. Use the following context to answer the user's question."},
         {"role": "system", "content": f"Context:\n{context}"},
-        {"role": "user", "content": user_question}
+        {"role": "user", "content": req.message}
     ]
 
-    # Call GPT
     response = client.chat.completions.create(
         model=chat_deployment,
-        messages=prompt_messages
+        messages=messages
     )
 
-    return {"response": response.choices[0].message.content}
+    return {
+        "response": response.choices[0].message.content,
+        "sources": top_chunks
+}

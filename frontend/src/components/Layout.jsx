@@ -28,7 +28,10 @@ export default function Layout() {
 
             const res = await axios.post(
                 '/api/chat',
-                { message: userMessage },
+                {
+                    message: userMessage,
+                    user_email: accounts[0].username // or a field with email
+                },
                 { headers: { Authorization: `Bearer ${result.accessToken}` } }
             )
 
@@ -69,29 +72,6 @@ export default function Layout() {
                             loading={loading}
                             setLoading={setLoading}
                         />
-                    </div>
-
-                    {/* Floating input */}
-                    <div className="position-absolute bottom-0 start-0 end-0 p-4 bg-white border-top">
-                        <form className="d-flex gap-2" onSubmit={handleChatSubmit}>
-
-                            <input
-                                type="text"
-                                className="form-control"
-                                placeholder="Type your message..."
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                disabled={loading}
-                            />
-                            <button
-                                type="submit"
-                                className="btn btn-primary"
-                                data-submit-button
-                                disabled={loading || !input.trim()}
-                            >
-                                {loading ? 'Sending...' : 'Send'}
-                            </button>
-                        </form>
                     </div>
                 </div>
             </div>

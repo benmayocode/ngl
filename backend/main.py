@@ -6,6 +6,7 @@ from typing import List
 import numpy as np
 from routes.upload import router as upload_router
 from routes.chat import router as chat_router
+from routes.sessions import router as sessions_router
 
 load_dotenv()
 
@@ -20,3 +21,4 @@ app.add_middleware(
 
 app.include_router(upload_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
+app.include_router(sessions_router, prefix="/api")

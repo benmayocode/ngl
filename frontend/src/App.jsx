@@ -21,8 +21,23 @@ const msalInstance = new PublicClientApplication({
 function AuthenticatedApp() {
   return (
     <Routes>
-      <Route path="/" element={<ShellLayout><ChatPage /></ShellLayout>} />
-      <Route path="/admin" element={<ShellLayout><AdminView /></ShellLayout>} />
+<Route
+  path="/"
+  element={
+    <ShellLayout>
+      {({ currentSession }) => <ChatPage currentSession={currentSession} />}
+    </ShellLayout>
+  }
+/>
+
+<Route
+  path="/admin"
+  element={
+    <ShellLayout>
+      {({ currentSession }) => <AdminView currentSession={currentSession} />}
+    </ShellLayout>
+  }
+/>
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   )

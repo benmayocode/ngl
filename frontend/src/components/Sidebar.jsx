@@ -1,14 +1,30 @@
 import { useMsal } from '@azure/msal-react'
+import { useEffect, useState } from 'react'
+import { fetchSessions, createSession } from '../services/chatService'
 import { ADMIN_USERS } from '../constants/admins'
-import { useNavigate, useLocation } from 'react-router-dom' // or your router of choice
+import { useNavigate, useLocation } from 'react-router-dom'
 import UserBadge from './UserBadge'
 
-export default function Sidebar() {
+export default function Sidebar({ selectedSessionId, onSelectSession }) {
   const { instance, accounts } = useMsal()
   const navigate = useNavigate()
   const location = useLocation()
   const userEmail = accounts[0]?.username
   const isAdmin = ADMIN_USERS.includes(userEmail)
+
+  const [sessions, setSessions] = useState([])
+
+  useEffect(() => {
+    if (userEmail) {
+      fetchSessions(userEmail).then(setSessions)
+    }
+  }, [userEmail])
+
+  const handleNewChat = async () => {
+    const session = await createSession({ userEmail, title: 'New Chat' })
+    setSessions((prev) => [session, ...prev])
+    onSelectSession(session) // 👈 trigger session switch
+  }
 
   const onAdminClick = () => {
     if (location.pathname === '/admin') {
@@ -25,11 +41,26 @@ export default function Sidebar() {
   return (
     <div className="d-flex flex-column h-100">
       <div>
-        <button className="btn btn-outline-primary w-100 mb-3">+ New Chat</button>
+        <button
+          className="btn btn-outline-primary w-100 mb-3"
+          onClick={handleNewChat}
+        >
+          + New Chat
+        </button>
+
         <div className="list-group mb-4">
-          <button className="list-group-item list-group-item-action">Vacation Policy</button>
-          <button className="list-group-item list-group-item-action">Payroll Questions</button>
-          <button className="list-group-item list-group-item-action">IT Support</button>
+          {sessions.map((session) => (
+            <button
+              key={session.id}
+              className={`list-group-item list-group-item-action text-truncate ${
+                selectedSessionId === session.id ? 'active' : ''
+              }`}
+              onClick={() => onSelectSession(session)}
+              title={session.title}
+            >
+              {session.title || 'Untitled'}
+            </button>
+          ))}
         </div>
 
         {isAdmin && (
@@ -44,7 +75,10 @@ export default function Sidebar() {
 
       <div className="mt-auto">
         <UserBadge />
-        <button onClick={handleLogout} className="btn btn-outline-danger w-100 mt-3">
+        <button
+          onClick={handleLogout}
+          className="btn btn-outline-danger w-100 mt-3"
+        >
           Sign Out
         </button>
       </div>

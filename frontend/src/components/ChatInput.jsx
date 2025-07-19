@@ -1,13 +1,13 @@
-// src/pages/ChatInput.jsx
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import FileUploader from '../components/FileUploader'
 import { useMsal } from '@azure/msal-react'
 import axios from 'axios'
+import { sendMessage } from '../services/chatService' // ⬅️ import it
 
-export default function ChatInput({ input, setInput, chatHistory, setChatHistory, loading, setLoading }) {
+export default function ChatInput({ input, setInput, chatHistory, setChatHistory, loading, setLoading, sessionId}) {
     const { instance, accounts } = useMsal()
-    const [parentWidth, setParentWidth] = useState(0)
     const [style, setStyle] = useState({ width: 0, left: 0 })
+    const textareaRef = useRef(null)
 
     useEffect(() => {
         const updatePosition = () => {
@@ -26,84 +26,127 @@ export default function ChatInput({ input, setInput, chatHistory, setChatHistory
         return () => window.removeEventListener('resize', updatePosition)
     }, [])
 
+    // Auto-resize text area
+    useEffect(() => {
+        const textarea = textareaRef.current
+        if (!textarea || input.length === 0) return
 
-    const handleChatSubmit = async (e) => {
-        e.preventDefault()
-        if (!input.trim()) return
+        const lineHeight = 24
+        const minHeight = 2 * lineHeight
+        const maxHeight = 6 * lineHeight
 
-        const userMessage = input.trim()
-        setInput('')
-        setLoading(true)
+        textarea.style.height = 'auto'
+        textarea.style.height = `${Math.max(minHeight, Math.min(textarea.scrollHeight, maxHeight))}px`
 
-        try {
-            const result = await instance.acquireTokenSilent({
-                scopes: ['User.Read'],
-                account: accounts[0],
-            })
+    }, [input])
+    
+const handleChatSubmit = async (e) => {
+    e.preventDefault()
+    if (!input.trim()) return
 
-            const res = await axios.post(
-                '/api/chat',
-                {
-                    message: userMessage,
-                    user_email: accounts[0].username,
-                },
-                {
-                    headers: { Authorization: `Bearer ${result.accessToken}` },
-                }
-            )
+    const userMessage = input.trim()
 
-            const botResponse = res.data.response
+    // Immediately append user message
+    setChatHistory((prev) => [
+        ...prev,
+        { role: 'user', content: userMessage },
+    ])
+    await sendMessage(sessionId, 'user', userMessage)
 
-            setChatHistory((prev) => [
-                ...prev,
-                { role: 'user', content: userMessage },
-                { role: 'assistant', content: botResponse },
-            ])
-        } catch (err) {
-            setChatHistory((prev) => [
-                ...prev,
-                { role: 'user', content: userMessage },
-                { role: 'assistant', content: 'Error: ' + err.message },
-            ])
+
+    setInput('')     // clear the input
+    setLoading(true) // trigger "GPT is thinking..."
+
+    try {
+        const result = await instance.acquireTokenSilent({
+            scopes: ['User.Read'],
+            account: accounts[0],
+        })
+
+        const res = await axios.post(
+            '/api/chat',
+            {
+                message: userMessage,
+                user_email: accounts[0].username,
+            },
+            {
+                headers: { Authorization: `Bearer ${result.accessToken}` },
+            }
+        )
+
+        const botResponse = res.data.response
+
+        // Append GPT response separately
+        setChatHistory((prev) => [
+            ...prev,
+            { role: 'assistant', content: botResponse },
+        ])
+        await sendMessage(sessionId, 'assistant', botResponse)
+
+    } catch (err) {
+        setChatHistory((prev) => [
+            ...prev,
+            { role: 'assistant', content: 'Error: ' + err.message },
+        ])
+        
+    }
+
+
+    setLoading(false)
+}
+
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            handleChatSubmit(e)
         }
-
-        setLoading(false)
     }
 
     return (
-<div
-  className="position-fixed bottom-0 mb-4"
-  style={{
-    position: 'fixed',
-    width: style.width,
-    left: style.left,
-    zIndex: 1000,
-  }}
->
-  <div className="position-relative bg-white rounded shadow border p-3">
-    {/* Text input field */}
-    <input
-      type="text"
-      className="form-control mb-2"
-      placeholder="Type your message..."
-      value={input}
-      onChange={(e) => setInput(e.target.value)}
-      disabled={loading}
-    />
+        <div
+            className="position-fixed bottom-0 mb-4"
+            style={{
+                position: 'fixed',
+                width: style.width,
+                left: style.left,
+                zIndex: 1000,
+            }}
+        >
+            <form onSubmit={handleChatSubmit}>
+                <div className="position-relative bg-white rounded shadow border p-3">
+                    <textarea
+                        ref={textareaRef}
+                        id="chat-input"
+                        rows={2}
+                        className="form-control border-0 shadow-none mb-2"
+                        style={{
+                            resize: 'none',
+                            overflowY: 'auto',      // 👈 enable vertical scroll
+                            maxHeight: '144px',     // 6 lines * 24px
+                            minHeight: '48px',      // 2 lines
+                            outline: 'none',
+                            boxShadow: 'none',
+                        }}
+                        placeholder="Type your message..."
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        disabled={loading}
+                    />
 
-    {/* Button row */}
-    <div className="d-flex justify-content-between align-items-center">
-      <FileUploader />
-      <button
-        type="button"
-        className="btn btn-primary"
-        onClick={handleChatSubmit}
-        disabled={loading || !input.trim()}
-      >
-        {loading ? 'Sending...' : 'Send'}
-      </button>
-    </div>
-  </div>
-</div>
+                    <div className="d-flex justify-content-between align-items-center">
+                        <FileUploader />
+                        <button
+                            type="submit"
+                            className="btn btn-primary"
+                            disabled={loading || !input.trim()}
+                        >
+                            {loading ? 'Sending...' : 'Send'}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
     )
 }

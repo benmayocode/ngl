@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Request
+# backend/routes/chat.py
+from fastapi import APIRouter
 from pydantic import BaseModel
 from openai import AzureOpenAI
 from supabase import create_client

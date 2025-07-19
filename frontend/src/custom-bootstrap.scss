@@ -1,0 +1,32 @@
+// src/styles/custom-bootstrap.scss
+
+// 🎨 Custom Theme Variables
+$primary:    #42b289;
+$primary-rgb: 123, 38, 121;
+
+$secondary:  #6366F1;
+$secondary-rgb: 99, 102, 241;
+
+$success:    #10B981;
+$success-rgb: 16, 185, 129;
+
+$info:       #06B6D4;
+$info-rgb: 6, 182, 212;
+
+$warning:    #e8c97c;
+$warning-rgb: 251, 191, 36;
+
+$danger:     #EF4444;
+$danger-rgb: 239, 68, 68;
+
+$light:      #F9FAFB;
+$light-rgb: 249, 250, 251;
+
+$dark:       #1F2937;
+$dark-rgb: 31, 41, 55;
+
+$body-color: #1F2937;
+$body-bg:    #ffffff;
+
+// ✅ Bootstrap SCSS entrypoint
+@import "bootstrap/scss/bootstrap";

@@ -1,17 +1,23 @@
 // src/pages/ChatPage.jsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ChatUI from '../components/ChatUI'
-import ChatInput
- from '../components/ChatInput'
+import ChatInput from '../components/ChatInput'
+import { fetchMessages } from '../services/chatService'
+
 import { useMsal } from '@azure/msal-react'
 import axios from 'axios'
 
-export default function ChatPage() {
+export default function ChatPage({ currentSession }) {
   const [input, setInput] = useState('')
   const [chatHistory, setChatHistory] = useState([])
   const [loading, setLoading] = useState(false)
-
   const { instance, accounts } = useMsal()
+
+  useEffect(() => {
+    if (currentSession?.id) {
+      fetchMessages(currentSession.id).then(setChatHistory)
+    }
+  }, [currentSession])
 
   const handleChatSubmit = async (e) => {
     e.preventDefault()
@@ -27,16 +33,16 @@ export default function ChatPage() {
         account: accounts[0],
       })
 
-        const res = await axios.post(
+      const res = await axios.post(
         '/api/chat',
         {
-            message: userMessage,
-            user_email: accounts[0].username,  // or .idTokenClaims.email if you want to be safer
+          message: userMessage,
+          user_email: accounts[0].username,  // or .idTokenClaims.email if you want to be safer
         },
         {
-            headers: { Authorization: `Bearer ${result.accessToken}` },
+          headers: { Authorization: `Bearer ${result.accessToken}` },
         }
-        )
+      )
 
       const botResponse = res.data.response
 
@@ -58,14 +64,15 @@ export default function ChatPage() {
 
   return (
     <>
-    <ChatInput 
+      <ChatInput
         input={input}
         setInput={setInput}
         chatHistory={chatHistory}
         setChatHistory={setChatHistory}
         loading={loading}
         setLoading={setLoading}
-    />
+        sessionId={currentSession?.id}
+      />
       <ChatUI
         input={input}
         setInput={setInput}

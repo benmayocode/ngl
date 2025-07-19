@@ -58,7 +58,7 @@ export default function Layout() {
             <div className="row h-100">
                 {/* Sidebar */}
                 <div className="col-12 col-md-3 col-lg-2 bg-light border-end p-3">
-                    <Sidebar />
+                    {/* <Sidebar /> */}
                 </div>
 
                 {/* Main */}

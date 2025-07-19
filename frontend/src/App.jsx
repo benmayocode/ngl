@@ -3,7 +3,6 @@ import { PublicClientApplication } from '@azure/msal-browser'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 import LoginButton from './components/LoginButton'
-import Layout from './components/Layout'
 import ChatPage from './pages/ChatPage'
 import AdminView from './pages/AdminView'
 import ShellLayout from './components/ShellLayout'

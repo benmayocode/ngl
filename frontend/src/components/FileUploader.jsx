@@ -1,13 +1,16 @@
-import { useState } from 'react'
+// src/components/FileUploader.jsx
+import { useState, useRef } from 'react'
 import axios from 'axios'
+import { Plus } from 'lucide-react'  // or use any icon library you prefer
 
 export default function FileUploader({ type = 'global', onUpload }) {
-  const [file, setFile] = useState(null)
   const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef()
 
-  const handleUpload = async () => {
-    if (!file) return alert("Please select a file")
-    
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
     const formData = new FormData()
     formData.append('file', file)
     formData.append('type', type)
@@ -16,7 +19,6 @@ export default function FileUploader({ type = 'global', onUpload }) {
     try {
       await axios.post('/api/upload', formData)
       alert('File uploaded successfully!')
-      setFile(null)
       if (onUpload) onUpload()
     } catch (err) {
       alert('Upload failed: ' + err.message)
@@ -25,20 +27,21 @@ export default function FileUploader({ type = 'global', onUpload }) {
   }
 
   return (
-    <div className="mb-4">
-      <label className="form-label">Upload a Document</label>
+    <>
       <input
         type="file"
-        className="form-control"
-        onChange={(e) => setFile(e.target.files[0])}
+        ref={fileInputRef}
+        className="d-none"
+        onChange={handleFileChange}
       />
       <button
-        className="btn btn-primary mt-2"
-        onClick={handleUpload}
-        disabled={uploading}
+        type="button"
+        className="btn btn-light"
+        onClick={() => fileInputRef.current.click()}
+        title="Upload document"
       >
-        {uploading ? 'Uploading...' : 'Upload'}
+        +
       </button>
-    </div>
+    </>
   )
 }

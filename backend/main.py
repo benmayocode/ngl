@@ -1,11 +1,7 @@
 import os
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from dotenv import load_dotenv
-from openai import AzureOpenAI
-import fitz  # PyMuPDF
-import hashlib
 from typing import List
 import numpy as np
 from routes.upload import router as upload_router

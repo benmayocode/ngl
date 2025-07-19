@@ -59,6 +59,7 @@ async def chat(req: ChatRequest):
         )
         for chunk in filtered_chunks
     ]
+    
     top_chunks = [chunk for score, chunk in sorted(scored, reverse=True)[:3]]
     
     print("📚 Top chunks used for context:")

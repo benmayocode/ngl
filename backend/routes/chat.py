@@ -41,7 +41,7 @@ async def chat(req: ChatRequest):
     ).data[0].embedding
 
     # Pull document chunks: global + user-specific
-    response = supabase.table("documents").select("content", "embedding", "doc_type", "user_email").execute()
+    response = supabase.table("documents").select("content", "embedding", "doc_type", "user_email", "parent_id").execute()
     chunks = response.data
 
     # Filter: global + user's own docs
@@ -51,23 +51,19 @@ async def chat(req: ChatRequest):
     ]
 
     scored = [
-        (
-            cosine_similarity(
-                query_embedding,
-                json.loads(chunk["embedding"])  # <-- convert stringified list to actual list
-            ),
-            chunk["content"]
-        )
+        {
+            "score": cosine_similarity(query_embedding, json.loads(chunk["embedding"])),
+            "content": chunk["content"],
+            "parent_id": chunk.get("parent_id")
+        }
         for chunk in filtered_chunks
+        if chunk.get("embedding") is not None
     ]
-    
-    top_chunks = [chunk for score, chunk in sorted(scored, reverse=True)[:3]]
-    
-    print("📚 Top chunks used for context:")
-    for i, chunk in enumerate(top_chunks):
-        print(f"{i+1}. {chunk[:200]}...")  # Print first 200 chars
 
-    context = "\n\n".join(top_chunks)
+    
+    top_chunks = sorted(scored, key=lambda x: x["score"], reverse=True)[:3]
+    
+    context = "\n\n".join(chunk["content"] for chunk in top_chunks)
 
     messages = [
         {"role": "system", "content": "You are a helpful assistant. Use the following context to answer the user's question."},
@@ -81,6 +77,12 @@ async def chat(req: ChatRequest):
     )
 
     return {
-        "response": response.choices[0].message.content,
-        "sources": top_chunks
+    "response": response.choices[0].message.content,
+    "sources": [
+        {
+            "doc_id": chunk["parent_id"],
+            "excerpt": chunk["content"][:300]
+        }
+        for chunk in top_chunks if chunk.get("parent_id")
+    ]
 }

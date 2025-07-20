@@ -4,7 +4,7 @@ import { useMsal } from '@azure/msal-react'
 import axios from 'axios'
 import { sendMessage } from '../services/chatService' // ⬅️ import it
 
-export default function ChatInput({ input, setInput, chatHistory, setChatHistory, loading, setLoading, sessionId}) {
+export default function ChatInput({ input, setInput, chatHistory, setChatHistory, loading, setLoading, sessionId }) {
     const { instance, accounts } = useMsal()
     const [style, setStyle] = useState({ width: 0, left: 0 })
     const textareaRef = useRef(null)
@@ -39,62 +39,58 @@ export default function ChatInput({ input, setInput, chatHistory, setChatHistory
         textarea.style.height = `${Math.max(minHeight, Math.min(textarea.scrollHeight, maxHeight))}px`
 
     }, [input])
-    
-const handleChatSubmit = async (e) => {
-    e.preventDefault()
-    if (!input.trim()) return
 
-    const userMessage = input.trim()
+    const handleChatSubmit = async (e) => {
+        e.preventDefault()
+        if (!input.trim()) return
 
-    // Immediately append user message
-    setChatHistory((prev) => [
-        ...prev,
-        { role: 'user', content: userMessage },
-    ])
-    await sendMessage(sessionId, 'user', userMessage)
+        const userMessage = input.trim()
 
-
-    setInput('')     // clear the input
-    setLoading(true) // trigger "GPT is thinking..."
-
-    try {
-        const result = await instance.acquireTokenSilent({
-            scopes: ['User.Read'],
-            account: accounts[0],
-        })
-
-        const res = await axios.post(
-            '/api/chat',
-            {
-                message: userMessage,
-                user_email: accounts[0].username,
-            },
-            {
-                headers: { Authorization: `Bearer ${result.accessToken}` },
-            }
-        )
-
-        const botResponse = res.data.response
-
-        // Append GPT response separately
+        // Immediately append user message
         setChatHistory((prev) => [
             ...prev,
-            { role: 'assistant', content: botResponse },
+            { role: 'user', content: userMessage },
         ])
-        await sendMessage(sessionId, 'assistant', botResponse)
+        await sendMessage(sessionId, 'user', userMessage)
 
-    } catch (err) {
-        setChatHistory((prev) => [
-            ...prev,
-            { role: 'assistant', content: 'Error: ' + err.message },
-        ])
-        
+
+        setInput('')     // clear the input
+        setLoading(true) // trigger "GPT is thinking..."
+
+        try {
+            const result = await instance.acquireTokenSilent({
+                scopes: ['User.Read'],
+                account: accounts[0],
+            })
+
+            const res = await axios.post(
+                '/api/chat',
+                {
+                    message: userMessage,
+                    user_email: accounts[0].username,
+                },
+                {
+                    headers: { Authorization: `Bearer ${result.accessToken}` },
+                }
+            )
+
+            const botResponse = res.data.response
+            const sources = res.data.sources || []
+            // Append GPT response separately
+            setChatHistory((prev) => [
+                ...prev,
+                { role: 'assistant', content: botResponse, sources },
+            ])
+            await sendMessage(sessionId, 'assistant', botResponse, sources)
+        } catch (err) {
+            setChatHistory((prev) => [
+                ...prev,
+                { role: 'assistant', content: 'Error: ' + err.message },
+            ])
+
+        }
+        setLoading(false)
     }
-
-
-    setLoading(false)
-}
-
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {

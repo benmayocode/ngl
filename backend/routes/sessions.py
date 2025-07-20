@@ -15,6 +15,7 @@ supabase: Client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_
 class ChatMessage(BaseModel):
     role: str  # "user" or "assistant"
     content: str
+    sources: List[dict] = []  # Optional field
 
 class SessionCreate(BaseModel):
     user_email: str
@@ -44,10 +45,12 @@ def list_sessions(user_email: str):
 @router.post("/sessions/{session_id}/messages")
 def add_message(session_id: UUID, message: ChatMessage):
     print(f"Adding message to session {session_id}: {message}")
+
     result = supabase.table("chat_messages").insert({
         "session_id": str(session_id),
         "role": message.role,
-        "content": message.content
+        "content": message.content,
+        "sources": message.sources if message.sources else None  # store as JSON
     }).execute()
 
     if result.data is None:

@@ -20,12 +20,13 @@ export async function fetchMessages(sessionId) {
   return res.data
 }
 
-export async function sendMessage(sessionId, role, content) {
-  console.log("Sending message to session:", sessionId, { role, content })
+export async function sendMessage(sessionId, role, content, sources = []) {
+  console.log("Sending message to session:", sessionId, { role, content, sources })
 
   const res = await axios.post(`${API_BASE}/${sessionId}/messages`, {
     role,
     content,
+    sources,
   })
   return res.data
 }

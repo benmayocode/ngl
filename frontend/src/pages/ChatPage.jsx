@@ -11,7 +11,6 @@ export default function ChatPage({ currentSession }) {
   const [input, setInput] = useState('')
   const [chatHistory, setChatHistory] = useState([])
   const [loading, setLoading] = useState(false)
-  const { instance, accounts } = useMsal()
 
   useEffect(() => {
     if (currentSession?.id) {
@@ -19,48 +18,48 @@ export default function ChatPage({ currentSession }) {
     }
   }, [currentSession])
 
-  const handleChatSubmit = async (e) => {
-    e.preventDefault()
-    if (!input.trim()) return
+  // const handleChatSubmit = async (e) => {
+  //   e.preventDefault()
+  //   if (!input.trim()) return
 
-    const userMessage = input.trim()
-    setInput('')
-    setLoading(true)
+  //   const userMessage = input.trim()
+  //   setInput('')
+  //   setLoading(true)
 
-    try {
-      const result = await instance.acquireTokenSilent({
-        scopes: ['User.Read'],
-        account: accounts[0],
-      })
+  //   try {
+  //     const result = await instance.acquireTokenSilent({
+  //       scopes: ['User.Read'],
+  //       account: accounts[0],
+  //     })
 
-      const res = await axios.post(
-        '/api/chat',
-        {
-          message: userMessage,
-          user_email: accounts[0].username,  // or .idTokenClaims.email if you want to be safer
-        },
-        {
-          headers: { Authorization: `Bearer ${result.accessToken}` },
-        }
-      )
+  //     const res = await axios.post(
+  //       '/api/chat',
+  //       {
+  //         message: userMessage,
+  //         user_email: accounts[0].username,  // or .idTokenClaims.email if you want to be safer
+  //       },
+  //       {
+  //         headers: { Authorization: `Bearer ${result.accessToken}` },
+  //       }
+  //     )
 
-      const botResponse = res.data.response
+  //     const botResponse = res.data.response
 
-      setChatHistory((prev) => [
-        ...prev,
-        { role: 'user', content: userMessage },
-        { role: 'assistant', content: botResponse },
-      ])
-    } catch (err) {
-      setChatHistory((prev) => [
-        ...prev,
-        { role: 'user', content: userMessage },
-        { role: 'assistant', content: 'Error: ' + err.message },
-      ])
-    }
+  //     setChatHistory((prev) => [
+  //       ...prev,
+  //       { role: 'user', content: userMessage },
+  //       { role: 'assistant', content: botResponse },
+  //     ])
+  //   } catch (err) {
+  //     setChatHistory((prev) => [
+  //       ...prev,
+  //       { role: 'user', content: userMessage },
+  //       { role: 'assistant', content: 'Error: ' + err.message },
+  //     ])
+  //   }
 
-    setLoading(false)
-  }
+  //   setLoading(false)
+  // }
 
   return (
     <>

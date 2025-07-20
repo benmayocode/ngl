@@ -9,7 +9,6 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "build-css": "sass src/styles/custom-bootstrap.scss src/styles/custom-bootstrap.css"
-
   },
   "dependencies": {
     "@azure/msal-browser": "^4.15.0",
@@ -17,10 +16,14 @@
     "axios": "^1.10.0",
     "bootstrap": "^5.3.7",
     "lucide-react": "^0.525.0",
+    "pdfjs-dist": "^5.3.31",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-pdf": "^10.0.1",
     "react-router-dom": "^7.7.0",
-    "sass": "^1.89.2"
+    "sass": "^1.89.2",
+    "vite-plugin-top-level-await": "^1.6.0",
+    "vite-plugin-wasm": "^3.5.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

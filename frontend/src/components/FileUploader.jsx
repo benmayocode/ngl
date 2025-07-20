@@ -16,6 +16,7 @@ export default function FileUploader({ type = 'global', onUpload }) {
     formData.append('type', type)
 
     setUploading(true)
+    console.log('Uploading file...')
     try {
       await axios.post('/api/upload', formData)
       alert('File uploaded successfully!')
@@ -24,6 +25,8 @@ export default function FileUploader({ type = 'global', onUpload }) {
       alert('Upload failed: ' + err.message)
     }
     setUploading(false)
+    e.target.value = null  // reset file input
+
   }
 
   return (
@@ -37,7 +40,10 @@ export default function FileUploader({ type = 'global', onUpload }) {
       <button
         type="button"
         className="btn btn-light"
-        onClick={() => fileInputRef.current.click()}
+        onClick={() => {
+          console.log("Button clicked")
+          fileInputRef.current.click()
+        }}
         title="Upload document"
       >
         +

@@ -4,12 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from typing import List
 import numpy as np
-from routes.upload import router as upload_router
+from routes.documents import router as documents_router
 from routes.chat import router as chat_router
 from routes.sessions import router as sessions_router
 
 load_dotenv()
-
 app = FastAPI()
 
 app.add_middleware(
@@ -19,6 +18,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(upload_router, prefix="/api")
+app.include_router(documents_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(sessions_router, prefix="/api")

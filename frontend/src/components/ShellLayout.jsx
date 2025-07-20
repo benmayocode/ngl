@@ -10,7 +10,6 @@ export default function ShellLayout({ children }) {
         <div className="container-fluid vh-100 overflow-hidden">
             <div className="row h-100">
                 <div className="col-12 col-md-3 col-lg-2 bg-light border-end p-3 d-flex flex-column h-100">
-                    {currentSession?.id}
                     <Sidebar
                         selectedSessionId={currentSession?.id}
                         onSelectSession={setCurrentSession}

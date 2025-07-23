@@ -1,3 +1,4 @@
+// frontend/src/components/Sidebar.jsx
 import { useMsal } from '@azure/msal-react'
 import { useEffect, useState } from 'react'
 import { fetchSessions, createSession } from '../services/chatService'
@@ -23,7 +24,7 @@ export default function Sidebar({ selectedSessionId, onSelectSession }) {
   const handleNewChat = async () => {
     const session = await createSession({ userEmail, title: 'New Chat' })
     setSessions((prev) => [session, ...prev])
-    onSelectSession(session) // 👈 trigger session switch
+    onSelectSession(session)
   }
 
   const onAdminClick = () => {

@@ -1,4 +1,4 @@
-// components/PromptNode.jsx
+// frontend/src/components/nodes/PromptNode.jsx
 import React from 'react';
 import { Handle, Position } from 'reactflow';
 

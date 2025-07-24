@@ -1,40 +1,24 @@
-import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { NODE_DEFINITIONS } from './nodes';
 
 export default function SidebarFlow({ setNodes }) {
-  const location = useLocation();
-
-  const addPromptNode = () => {
+  const addNode = (def) => {
     const id = `node_${Date.now()}`;
-    setNodes((nds) => [
-      ...nds,
-      {
-        id,
-        type: 'prompt',
-        position: { x: 100 + nds.length * 50, y: 200 },
-        data: {
-          label: `Prompt Node ${id}`,
-          template: '',
-          onChange: (newTemplate) => {
-            setNodes((prev) =>
-              prev.map((node) =>
-                node.id === id
-                  ? { ...node, data: { ...node.data, template: newTemplate, onChange: node.data.onChange } }
-                  : node
-              )
-            );
-          }
-        }
-      }
-    ]);
+    const newNode = def.createNode(id, setNodes);
+    setNodes((prev) => [...prev, newNode]);
   };
 
   return (
     <div>
       <h6>Flow Builder</h6>
-      <button className="btn btn-outline-primary w-100" onClick={addPromptNode}>
-        + Prompt Node
-      </button>
+      {NODE_DEFINITIONS.map((def) => (
+        <button
+          key={def.type}
+          className="btn btn-outline-primary w-100 mb-2"
+          onClick={() => addNode(def)}
+        >
+          + {def.label}
+        </button>
+      ))}
     </div>
   );
 }

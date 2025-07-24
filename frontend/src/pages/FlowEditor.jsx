@@ -1,53 +1,48 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import ReactFlow, {
   MiniMap,
   Controls,
   Background,
   addEdge,
-  Handle,
-  Position
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
-function PromptNode({ data, isConnectable }) {
-  return (
-    <div style={{ padding: 10, border: '1px solid #555', borderRadius: 8, background: '#eef' }}>
-      <strong>{data.label || 'Prompt Node'}</strong>
-      <div>
-        <textarea
-          value={data.template}
-          onChange={(e) => data.onChange(e.target.value)}
-          placeholder="Enter prompt template..."
-          rows={4}
-          style={{ width: '100%', marginTop: 8 }}
-        />
-      </div>
-      <Handle type="target" position={Position.Left} isConnectable={isConnectable} />
-      <Handle type="source" position={Position.Right} isConnectable={isConnectable} />
-    </div>
-  );
-}
+import PromptNode from '../components/nodes/PromptNode';
+import FlowControls from '../components/FlowControls';
+import FlowSaveModal from '../components/FlowSaveModal';
 
 const nodeTypes = {
   prompt: PromptNode
 };
 
-export default function FlowEditor({ nodes, setNodes, onNodesChange, edges, setEdges, onEdgesChange }) {
+export default function FlowEditor({
+  nodes,
+  setNodes,
+  onNodesChange,
+  edges,
+  setEdges,
+  onEdgesChange,
+  currentSession
+}) {
+
   const [inputText, setInputText] = useState('');
   const [output, setOutput] = useState('');
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [savedFlows, setSavedFlows] = useState([]);
+
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
 
   const runFlow = async () => {
     const flow = {
       nodes: nodes.map(({ id, type, data, position }) => ({ id, type, data, position })),
-      edges
+      edges,
     };
 
     try {
       const res = await fetch('http://localhost:8000/api/langgraph/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flow, input: inputText })
+        body: JSON.stringify({ flow, input: inputText }),
       });
       const json = await res.json();
       setOutput(json.result);
@@ -57,22 +52,60 @@ export default function FlowEditor({ nodes, setNodes, onNodesChange, edges, setE
     }
   };
 
+  const saveFlow = async (name, description) => {
+    const flow = {
+      name,
+      description,
+      nodes: nodes.map(({ id, type, data, position }) => ({ id, type, data, position })),
+      edges,
+      created_by: 'demo-user@example.com',
+    };
+
+    try {
+      const res = await fetch('http://localhost:8000/api/flows/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(flow),
+      });
+      const json = await res.json();
+      setSavedFlows((prev) => [...prev, json]);
+      setShowSaveModal(false);
+    } catch (err) {
+      console.error('Error saving flow:', err);
+    }
+  };
+
+  const loadFlows = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/api/flows/');
+      const json = await res.json();
+      setSavedFlows(Array.isArray(json) ? json : []);
+    } catch (err) {
+      console.error('Error loading flows:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadFlows();
+  }, []);
+
   return (
     <div style={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div className="p-3 bg-light border-bottom d-flex align-items-center gap-2">
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Enter input..."
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          style={{ maxWidth: 400 }}
-        />
-        <button onClick={runFlow} className="btn btn-primary">
-          Run Flow
-        </button>
-        {output && <div className="ms-3"><strong>Output:</strong> {output}</div>}
-      </div>
+      <FlowControls
+        inputText={inputText}
+        setInputText={setInputText}
+        output={output}
+        runFlow={runFlow}
+        savedFlows={Array.isArray(savedFlows) ? savedFlows : []}
+        onLoadFlow={(flowId) => {
+          const selected = savedFlows.find((f) => f.id === flowId);
+          if (selected) {
+            setNodes(selected.nodes);
+            setEdges(selected.edges);
+          }
+        }}
+        onShowSaveModal={() => setShowSaveModal(true)}
+      />
 
       <div style={{ flex: 1 }}>
         <ReactFlow
@@ -89,6 +122,12 @@ export default function FlowEditor({ nodes, setNodes, onNodesChange, edges, setE
           <Background gap={12} size={1} />
         </ReactFlow>
       </div>
+
+      <FlowSaveModal
+        show={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onSave={saveFlow}
+      />
     </div>
   );
 }

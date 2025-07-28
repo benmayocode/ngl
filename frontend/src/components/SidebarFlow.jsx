@@ -1,3 +1,5 @@
+// frontend/src/components/SidebarFlow.jsx
+
 import { NODE_DEFINITIONS } from './nodes';
 
 export default function SidebarFlow({ setNodes }) {

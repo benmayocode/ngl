@@ -46,3 +46,9 @@
   }
 }
 
+.react-flow__node-output {
+  width: auto !important;
+  padding: 0 !important;
+  background-color: transparent !important;
+  border: none !important;
+}

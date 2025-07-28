@@ -1,3 +1,4 @@
+// frontend/src/components/nodes/output.js
 export const outputNodeDefinition = {
   type: 'output',
   label: 'Output Node',

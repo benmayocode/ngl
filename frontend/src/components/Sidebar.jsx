@@ -1,16 +1,17 @@
-// frontend/src/components/Sidebar.jsx
-import { useMsal } from '@azure/msal-react'
 import { useEffect, useState } from 'react'
 import { fetchSessions, createSession } from '../services/chatService'
 import { ADMIN_USERS } from '../constants/admins'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { supabase } from '../lib/supabaseClient'
+import { useAuth } from '../context/AuthContext'
 import UserBadge from './UserBadge'
 
 export default function Sidebar({ selectedSessionId, onSelectSession }) {
-  const { instance, accounts } = useMsal()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const userEmail = accounts[0]?.username
+
+  const userEmail = user?.email
   const isAdmin = ADMIN_USERS.includes(userEmail)
 
   const [sessions, setSessions] = useState([])
@@ -28,15 +29,11 @@ export default function Sidebar({ selectedSessionId, onSelectSession }) {
   }
 
   const onAdminClick = () => {
-    if (location.pathname === '/admin') {
-      navigate('/')
-    } else {
-      navigate('/admin')
-    }
+    navigate(location.pathname === '/admin' ? '/' : '/admin')
   }
 
-  const handleLogout = () => {
-    instance.logoutPopup()
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
   }
 
   return (

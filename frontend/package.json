@@ -13,6 +13,7 @@
   "dependencies": {
     "@azure/msal-browser": "^4.15.0",
     "@azure/msal-react": "^3.0.15",
+    "@supabase/supabase-js": "^2.52.1",
     "@xyflow/react": "^12.8.2",
     "axios": "^1.10.0",
     "bootstrap": "^5.3.7",

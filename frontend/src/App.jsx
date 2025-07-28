@@ -1,24 +1,16 @@
 // frontend/src/App.jsx
 import { useState } from 'react'
-import { useIsAuthenticated, MsalProvider } from '@azure/msal-react'
-import { PublicClientApplication } from '@azure/msal-browser'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
 import ChatPage from './pages/ChatPage'
 import AdminView from './pages/AdminView'
 import FlowEditor from './pages/FlowEditor'
 import ShellLayout from './components/ShellLayout'
-import LoginButton from './components/LoginButton'
 
 import { useNodesState, useEdgesState } from 'reactflow'
 
-const msalInstance = new PublicClientApplication({
-  auth: {
-    clientId: '...',
-    authority: 'https://login.microsoftonline.com/...',
-    redirectUri: 'http://localhost:5173',
-  },
-})
+import { useAuth } from './context/AuthContext'
+import AuthForm from './components/AuthForm' // or wherever you placed your login form
 
 function AuthenticatedApp() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -69,14 +61,9 @@ function AuthenticatedApp() {
 }
 
 function App() {
-  const isAuthenticated = useIsAuthenticated()
-  return isAuthenticated ? <AuthenticatedApp /> : <LoginButton />
+  const { user } = useAuth()
+
+  return user ? <AuthenticatedApp /> : <AuthForm />
 }
 
-export default function WrappedApp() {
-  return (
-    <MsalProvider instance={msalInstance}>
-      <App />
-    </MsalProvider>
-  )
-}
+export default App

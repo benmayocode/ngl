@@ -1,17 +1,18 @@
-import { useMsal } from '@azure/msal-react'
+import { useAuth } from '../context/AuthContext'
 
 export default function UserBadge() {
-  const { accounts } = useMsal()
-  const user = accounts[0]
-  const claims = user?.idTokenClaims || {}
+  const { user } = useAuth()
+
+  if (!user) return null
+
+  const email = user.email
+  const displayName = user.user_metadata?.full_name || email
 
   const isValidName = (name) => {
     return name && !/^[a-f0-9- ]{30,}$/i.test(name)
   }
 
-  const email = user.username
-  const displayName = isValidName(user.name) ? user.name : claims.preferred_username || email
-  const showName = displayName !== email
+  const showName = isValidName(displayName) && displayName !== email
 
   const getInitials = (value) => {
     const base = displayName || email

@@ -1,4 +1,5 @@
 import SidebarFlow from './SidebarFlow'
+import Sidebar from './Sidebar'
 import { useLocation } from 'react-router-dom'
 import { useState } from 'react'
 

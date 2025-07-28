@@ -4,6 +4,11 @@ from uuid import uuid4
 from datetime import datetime
 from typing import List
 from pydantic import BaseModel
+from supabase import create_client, Client
+import os
+
+
+supabase: Client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
 # In-memory store (replace with database or file-based later)
 FLOW_REGISTRY = {}
@@ -35,37 +40,42 @@ class Flow(FlowBase):
 
 @router.get("/", response_model=List[Flow])
 def list_flows():
-    return list(FLOW_REGISTRY.values())
+    res = supabase.table("flows").select("*").order("created_at", desc=True).execute()
+    return res.data or []
 
 @router.get("/{flow_id}", response_model=Flow)
 def get_flow(flow_id: str):
-    flow = FLOW_REGISTRY.get(flow_id)
-    if not flow:
+    res = supabase.table("flows").select("*").eq("id", flow_id).single().execute()
+    if res.data is None:
         raise HTTPException(status_code=404, detail="Flow not found")
-    return flow
+    return res.data
 
 @router.post("/", response_model=Flow)
 def create_flow(flow: FlowCreate):
     flow_id = str(uuid4())
-    flow_obj = Flow(id=flow_id, created_at=datetime.utcnow(), **flow.dict())
-    FLOW_REGISTRY[flow_id] = flow_obj
-    return flow_obj
+    flow_obj = {
+        "id": flow_id,
+        "created_at": datetime.utcnow().isoformat(),
+        **flow.dict()
+    }
+    res = supabase.table("flows").insert(flow_obj).execute()
+    if not res.data:
+        raise HTTPException(status_code=500, detail="Failed to create flow")
+    return res.data[0]
 
 @router.put("/{flow_id}", response_model=Flow)
 def update_flow(flow_id: str, update: FlowUpdate):
-    existing = FLOW_REGISTRY.get(flow_id)
-    if not existing:
+    res = supabase.table("flows").select("*").eq("id", flow_id).single().execute()
+    if res.data is None:
         raise HTTPException(status_code=404, detail="Flow not found")
-    updated_data = existing.dict()
-    for key, value in update.dict(exclude_unset=True).items():
-        updated_data[key] = value
-    updated_flow = Flow(**updated_data)
-    FLOW_REGISTRY[flow_id] = updated_flow
-    return updated_flow
+
+    update_data = update.dict(exclude_unset=True)
+    updated = supabase.table("flows").update(update_data).eq("id", flow_id).execute()
+    return updated.data[0]
 
 @router.delete("/{flow_id}")
 def delete_flow(flow_id: str):
-    if flow_id not in FLOW_REGISTRY:
-        raise HTTPException(status_code=404, detail="Flow not found")
-    del FLOW_REGISTRY[flow_id]
+    res = supabase.table("flows").delete().eq("id", flow_id).execute()
+    if not res.data:
+        raise HTTPException(status_code=404, detail="Flow not found or already deleted")
     return {"message": "Flow deleted"}

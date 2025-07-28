@@ -14,13 +14,14 @@ import OutputNode from '../components/nodes/OutputNode';
 import FlowControls from '../components/FlowControls';
 import FlowSaveModal from '../components/FlowSaveModal';
 import WebSearchNode from '../components/nodes/WebSearchNode';
-
+import ListingPageFinderNode from '../components/nodes/ListingPageFInderNode';
 import { rehydrateNodesFromRegistry } from '../components/nodes/registry';
 
 const nodeTypes = {
   prompt: PromptNode,
   output: OutputNode,
   web_search: WebSearchNode,
+  listing_page_finder: ListingPageFinderNode,
 
 };
 

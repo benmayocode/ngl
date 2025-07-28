@@ -95,6 +95,47 @@ def run_flow(flow_data: dict, user_input: str) -> dict:
                 instruction, fallback_input, model_id, node_id, parent_ids
             ))
 
+        elif node_type == "listing_page_finder":
+            from services.listing_finder import find_listings_page
+
+            model_id = data.get("model", "gpt-4")
+            parent_ids = input_sources.get(node_id, [])
+
+            def make_listing_page_fn(model_id, node_id, parent_ids):
+                def fn(state):
+                    input_val = None
+                    for pid in parent_ids:
+                        if pid in state:
+                            input_val = state[pid]
+                            break
+
+                    if not input_val or input_val.get("type") != "list":
+                        raise ValueError("listing_page_finder node requires a list input")
+
+                    results = []
+                    for item in input_val["items"]:
+                        if item.get("type") == "text":
+                            result = find_listings_page(item["value"], model=model_id)
+                            results.append(result)
+
+                    output = {
+                        "type": "list",
+                        "items": results,
+                        "metadata": {
+                            "model": model_id,
+                            "operation": "find_listing_page"
+                        }
+                    }
+
+                    intermediate_outputs[node_id] = "\n".join(r["value"] for r in results)
+                    return {node_id: output}
+
+                return fn
+
+            node_map[node_id] = RunnableLambda(
+                make_listing_page_fn(model_id, node_id, parent_ids)
+            )
+
 
         elif node_type == "web_search":
             query = data.get("query", "")

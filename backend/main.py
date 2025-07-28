@@ -25,3 +25,7 @@ app.include_router(chat_router, prefix="/api")
 app.include_router(sessions_router, prefix="/api")
 app.include_router(langgraph_router, prefix="/api/langgraph")
 app.include_router(flows_router, prefix="/api/flows")
+
+if os.getenv("ENV", "development") == "development":
+    from routes.dev import router as dev_router
+    app.include_router(dev_router, prefix="/api/dev")

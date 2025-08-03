@@ -1,13 +1,37 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export default function FlowSaveModal({ show, onClose, onSave }) {
+export default function FlowSaveModal({ show, onClose, onSave, flowData }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [progress, setProgress] = useState(100);
+  console.log('Flow data loaded:', flowData);
 
-  const handleSave = () => {
-    onSave(name, description);
-    setName('');
-    setDescription('');
+  useEffect(() => {
+    if (flowData) {
+      setName(flowData.name || '');
+      setDescription(flowData.description || '');
+    }
+  }, [flowData]);
+
+  const handleSave = async () => {
+    const result = await onSave(name, description); // Wait for save
+    if (result !== false) {
+      setSuccess(true);
+      let pct = 100;
+
+      const interval = setInterval(() => {
+        pct -= 2;
+        setProgress(pct);
+      }, 60);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        setSuccess(false);
+        setProgress(100);
+        onClose(); // ✅ Close modal
+      }, 3000);
+    }
   };
 
   if (!show) return null;
@@ -41,6 +65,22 @@ export default function FlowSaveModal({ show, onClose, onSave }) {
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
+            {success && (
+              <div className="alert alert-success position-relative" role="alert">
+                Flow saved successfully!
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    height: '4px',
+                    backgroundColor: '#198754',
+                    width: `${progress}%`,
+                    transition: 'width 60ms linear',
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           <div className="modal-footer">

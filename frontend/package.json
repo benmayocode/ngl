@@ -11,8 +11,6 @@
     "build-css": "sass src/styles/custom-bootstrap.scss src/styles/custom-bootstrap.css"
   },
   "dependencies": {
-    "@azure/msal-browser": "^4.15.0",
-    "@azure/msal-react": "^3.0.15",
     "@supabase/supabase-js": "^2.52.1",
     "@xyflow/react": "^12.8.2",
     "axios": "^1.10.0",
@@ -22,7 +20,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-pdf": "^10.0.1",
-    "react-router-dom": "^7.7.0",
+    "react-router-dom": "^7.7.1",
     "reactflow": "^11.11.4",
     "sass": "^1.89.2",
     "vite-plugin-top-level-await": "^1.6.0",

@@ -79,3 +79,8 @@ def delete_flow(flow_id: str):
     if not res.data:
         raise HTTPException(status_code=404, detail="Flow not found or already deleted")
     return {"message": "Flow deleted"}
+
+@router.get("/descriptions")
+def get_flow_descriptions():
+    res = supabase.table("flows").select("id", "name", "description").execute()
+    return res.data or []

@@ -1,13 +1,14 @@
+// frontend/src/components/ChatInput.jsx
 import { useEffect, useRef, useState } from 'react'
 import FileUploader from '../components/FileUploader'
-import { useMsal } from '@azure/msal-react'
 import axios from 'axios'
 import { sendMessage } from '../services/chatService' // ⬅️ import it
+import { useAuth } from '../context/AuthContext';
 
 export default function ChatInput({ input, setInput, chatHistory, setChatHistory, loading, setLoading, sessionId }) {
-    const { instance, accounts } = useMsal()
     const [style, setStyle] = useState({ width: 0, left: 0 })
     const textareaRef = useRef(null)
+    const { user } = useAuth();
 
     useEffect(() => {
         const updatePosition = () => {
@@ -58,21 +59,11 @@ export default function ChatInput({ input, setInput, chatHistory, setChatHistory
         setLoading(true) // trigger "GPT is thinking..."
 
         try {
-            const result = await instance.acquireTokenSilent({
-                scopes: ['User.Read'],
-                account: accounts[0],
-            })
+            const res = await axios.post('/api/chat', {
+                message: userMessage,
+                user_email: user?.email || 'unknown@user.com',
+            });
 
-            const res = await axios.post(
-                '/api/chat',
-                {
-                    message: userMessage,
-                    user_email: accounts[0].username,
-                },
-                {
-                    headers: { Authorization: `Bearer ${result.accessToken}` },
-                }
-            )
 
             const botResponse = res.data.response
             const sources = res.data.sources || []

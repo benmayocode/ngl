@@ -9,3 +9,4 @@ PyMuPDF
 python-multipart
 numpy
 supabase
+bs4

@@ -3,6 +3,10 @@ import os, json
 import numpy as np
 from utils.embedding import cosine_similarity
 from supabase import create_client
+import requests
+from difflib import SequenceMatcher
+
+FLOW_DESCRIPTION_ENDPOINT = "http://localhost:8000/api/flows/descriptions"
 
 client = AzureOpenAI(
     api_key=os.getenv("AZURE_OPENAI_KEY"),
@@ -30,7 +34,39 @@ def get_top_chunks(user_email, query_embedding, top_k=3):
     ]
     return sorted(scored, key=lambda x: x["score"], reverse=True)[:top_k]
 
+def suggest_matching_flow(message: str, flows: list[dict], threshold=0.6):
+    best = None
+    best_score = 0
+
+    for flow in flows:
+        desc = flow.get("description") or ""
+        score = SequenceMatcher(None, message.lower(), desc.lower()).ratio()
+        if score > best_score:
+            best = flow
+            best_score = score
+
+    if best and best_score >= threshold:
+        return best
+    return None
+
+
 def build_chat_response(query: str, user_email: str):
+    # 1. Try to find a matching flow
+    try:
+        res = requests.get(FLOW_DESCRIPTION_ENDPOINT)
+        flows = res.json()
+        match = suggest_matching_flow(query, flows)
+
+        if match:
+            return {
+                "reply": f"💡 I found a saved flow that might help: **{match['name']}**\nWould you like to run it?",
+                "suggestedFlowId": match["id"],
+                "matchConfidence": round(SequenceMatcher(None, query.lower(), match['description'].lower()).ratio(), 2)
+            }
+    except Exception as e:
+        print("Flow suggestion failed:", e)
+
+
     query_embedding = client.embeddings.create(
         model=embedding_deployment,
         input=[query]

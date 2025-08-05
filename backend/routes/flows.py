@@ -6,9 +6,8 @@ from typing import List
 from pydantic import BaseModel
 from supabase import create_client, Client
 import os
-
-
-supabase: Client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+from utils.supabase import get_supabase
+supabase= get_supabase()
 
 # In-memory store (replace with database or file-based later)
 FLOW_REGISTRY = {}
@@ -42,6 +41,15 @@ class Flow(FlowBase):
 def list_flows():
     res = supabase.table("flows").select("*").order("created_at", desc=True).execute()
     return res.data or []
+
+@router.get("/descriptions")
+def list_flow_descriptions():
+    try:
+        res = supabase.table("flows").select("id", "name", "description").execute()
+        return res.data or []
+    except Exception as e:
+        print("Supabase error:", e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{flow_id}", response_model=Flow)
 def get_flow(flow_id: str):
@@ -80,7 +88,3 @@ def delete_flow(flow_id: str):
         raise HTTPException(status_code=404, detail="Flow not found or already deleted")
     return {"message": "Flow deleted"}
 
-@router.get("/descriptions")
-def get_flow_descriptions():
-    res = supabase.table("flows").select("id", "name", "description").execute()
-    return res.data or []

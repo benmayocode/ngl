@@ -11,7 +11,9 @@ from typing import List
 from fastapi.responses import StreamingResponse, Response
 import io
 import mimetypes
+from utils.supabase import get_supabase
 
+supabase= get_supabase()
 router = APIRouter()
 
 # Setup OpenAI client
@@ -22,12 +24,6 @@ client = AzureOpenAI(
 )
 
 embedding_deployment = os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
-
-# Setup Supabase client
-supabase: Client = create_client(
-    os.getenv("SUPABASE_URL"),
-    os.getenv("SUPABASE_KEY")
-)
 
 def embed_text(text: str):
     result = client.embeddings.create(

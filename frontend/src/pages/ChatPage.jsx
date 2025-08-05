@@ -1,6 +1,6 @@
 // src/pages/ChatPage.jsx
 import { useState, useEffect } from 'react'
-import ChatUI from '../components/ChatUI'
+import ChatHistory from '../components/ChatHistory'
 import ChatInput from '../components/ChatInput'
 import { fetchMessages } from '../services/chatService'
 
@@ -8,6 +8,8 @@ export default function ChatPage({ currentSession }) {
   const [input, setInput] = useState('')
   const [chatHistory, setChatHistory] = useState([])
   const [loading, setLoading] = useState(false)
+  const [flowState, setFlowState] = useState(null)
+  const [flowSuggestion, setFlowSuggestion] = useState(null)  // optional
 
   useEffect(() => {
     if (currentSession?.id) {
@@ -26,13 +28,21 @@ export default function ChatPage({ currentSession }) {
         loading={loading}
         setLoading={setLoading}
         sessionId={currentSession?.id}
+        flowState={flowState}
+        setFlowState={setFlowState}
+        flowSuggestion={flowSuggestion}
+        setFlowSuggestion={setFlowSuggestion}
       />
-      <ChatUI
+      <ChatHistory
         input={input}
         setInput={setInput}
         chatHistory={chatHistory}
         loading={loading}
         setLoading={setLoading}
+        flowState={flowState}
+        setFlowState={setFlowState}
+        flowSuggestion={flowSuggestion}
+        setFlowSuggestion={setFlowSuggestion}
       />
 
     </>

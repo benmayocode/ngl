@@ -1,6 +1,5 @@
 # services/langgraph_runner.py
 from langgraph.graph import StateGraph, END
-from langchain.chat_models import ChatOpenAI
 from langchain_core.runnables import RunnableLambda
 from langchain_core.messages import HumanMessage
 from typing import TypedDict

@@ -15,12 +15,19 @@ export default function Sidebar({ selectedSessionId, onSelectSession }) {
   const isAdmin = ADMIN_USERS.includes(userEmail)
 
   const [sessions, setSessions] = useState([])
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (userEmail) {
-      fetchSessions(userEmail).then(setSessions)
-    }
-  }, [userEmail])
+    const load = async () => {
+      if (!userEmail) return;
+      setLoading(true);
+      const sessions = await fetchSessions(userEmail);
+      setSessions(sessions);
+      setLoading(false);
+    };
+    load();
+  }, [userEmail]);
+
 
   const handleNewChat = async () => {
     const session = await createSession({ userEmail, title: 'New Chat' })
@@ -47,19 +54,27 @@ export default function Sidebar({ selectedSessionId, onSelectSession }) {
         </button>
 
         <div className="list-group mb-4">
-          {sessions.map((session) => (
-            <button
-              key={session.id}
-              className={`list-group-item list-group-item-action text-truncate ${
-                selectedSessionId === session.id ? 'active' : ''
-              }`}
-              onClick={() => onSelectSession(session)}
-              title={session.title}
-            >
-              {session.title || 'Untitled'}
-            </button>
-          ))}
+          {loading ? (
+            <div className="text-center py-2">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          ) : (
+            sessions.map((session) => (
+              <button
+                key={session.id}
+                className={`list-group-item list-group-item-action text-truncate ${selectedSessionId === session.id ? 'active' : ''
+                  }`}
+                onClick={() => onSelectSession(session)}
+                title={session.title}
+              >
+                {session.title || 'Untitled'}
+              </button>
+            ))
+          )}
         </div>
+
 
         {isAdmin && (
           <button

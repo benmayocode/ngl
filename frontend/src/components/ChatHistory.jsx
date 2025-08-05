@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import PreviewPanel from './PreviewPanel'
 
-export default function ChatUI({ chatHistory, loading }) {
+export default function ChatHistory({ chatHistory, loading, flowState, setFlowState, flowSuggestion, setFlowSuggestion }) {
   const [selectedSources, setSelectedSources] = useState([])
   const [showModal, setShowModal] = useState(false)
 
@@ -10,11 +10,35 @@ export default function ChatUI({ chatHistory, loading }) {
     setShowModal(true)
   }
 
+  const handleRunFlow = async () => {
+    try {
+      const res = await fetch(`/api/langgraph/run/${flowSuggestion.flow_id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: flowState?.session_id || flowSuggestion.sessionId }),  // fallback
+      });
+
+      const data = await res.json();
+
+      setFlowState({
+        flow_id: flowSuggestion.flow_id,
+        prompt: data.prompt,
+      });
+
+      setFlowSuggestion(null);
+    } catch (err) {
+      console.error("Failed to start flow:", err);
+    }
+  };
+
   return (
     <div className="mt-4 px-3" style={{ paddingBottom: '120px' }}>
       {chatHistory.map((msg, index) => {
-        console.log('Rendering message:', msg)
         const isUser = msg.role === 'user'
+
+        // ⛔️ Skip assistant flow suggestion message – we handle it separately below
+        if (!isUser && msg.flow_suggestion) return null
+
         return (
           <div
             key={index}
@@ -39,6 +63,21 @@ export default function ChatUI({ chatHistory, loading }) {
         )
       })}
 
+
+      {/* 💡 Flow suggestion block */}
+      {flowSuggestion && (
+        <div className="alert alert-info d-flex justify-content-between align-items-center">
+          <div>
+            💡 I found a saved flow that might help: <strong>{flowSuggestion.title}</strong><br />
+            Would you like to run it?
+          </div>
+          <button className="btn btn-sm btn-success ms-3" onClick={handleRunFlow}>
+            Run Flow
+          </button>
+        </div>
+      )}
+
+      {/* Sources modal */}
       {showModal && (
         <div className="modal show d-block" tabIndex="-1" onClick={() => setShowModal(false)}>
           <div className="modal-dialog modal-lg" onClick={(e) => e.stopPropagation()}>
@@ -60,7 +99,7 @@ export default function ChatUI({ chatHistory, loading }) {
         </div>
       )}
 
-
+      {/* Typing dots */}
       {loading && (
         <div className="d-flex justify-content-start mb-3">
           <div className="typing-indicator">
@@ -70,7 +109,6 @@ export default function ChatUI({ chatHistory, loading }) {
           </div>
         </div>
       )}
-
     </div>
   )
 }

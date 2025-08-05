@@ -1,6 +1,6 @@
 // frontend/src/components/Layout.jsx
 import { useState } from 'react'
-import ChatUI from './ChatUI'
+import ChatHistory from './ChatHistory'
 import axios from 'axios'
 
 
@@ -22,7 +22,7 @@ export default function Layout() {
                 <div className="col position-relative p-0">
                     {/* Scrollable chat area */}
                     <div className="overflow-auto px-4 pt-4 pb-5" style={{ height: '100%', paddingBottom: '7rem' }}>
-                        <ChatUI
+                        <ChatHistory
                             input={input}
                             setInput={setInput}
                             chatHistory={chatHistory}

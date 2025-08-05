@@ -4,6 +4,7 @@ import { ADMIN_USERS } from '../constants/admins'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
+import { deleteSession } from '../services/chatService'
 import UserBadge from './UserBadge'
 
 export default function Sidebar({ selectedSessionId, onSelectSession }) {
@@ -35,6 +36,18 @@ export default function Sidebar({ selectedSessionId, onSelectSession }) {
     onSelectSession(session)
   }
 
+  const handleDeleteSession = async (sessionId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this chat?");
+    if (!confirmDelete) return;
+
+    await deleteSession(sessionId);
+    setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+
+    if (selectedSessionId === sessionId) {
+      onSelectSession(null); // clear selection if deleted
+    }
+  };
+
   const onAdminClick = () => {
     navigate(location.pathname === '/admin' ? '/' : '/admin')
   }
@@ -62,15 +75,28 @@ export default function Sidebar({ selectedSessionId, onSelectSession }) {
             </div>
           ) : (
             sessions.map((session) => (
-              <button
+              <div
                 key={session.id}
-                className={`list-group-item list-group-item-action text-truncate ${selectedSessionId === session.id ? 'active' : ''
+                className={`list-group-item d-flex justify-content-between align-items-center ${selectedSessionId === session.id ? 'active' : ''
                   }`}
-                onClick={() => onSelectSession(session)}
                 title={session.title}
+                onClick={() => onSelectSession(session)}
+                style={{ cursor: 'pointer' }}
               >
-                {session.title || 'Untitled'}
-              </button>
+                <span className="text-truncate me-2" style={{ maxWidth: '80%' }}>
+                  {session.title || 'Untitled'}
+                </span>
+                <button
+                  className="btn btn-sm btn-outline-danger"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteSession(session.id);
+                  }}
+                  title="Delete chat"
+                >
+                  &times;
+                </button>
+              </div>
             ))
           )}
         </div>

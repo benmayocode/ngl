@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import ChatHistory from '../components/ChatHistory'
 import ChatInput from '../components/ChatInput'
+import FlowModal from '../components/FlowModal'
 import { fetchMessages } from '../services/chatService'
 
 export default function ChatPage({ currentSession }) {
@@ -10,6 +11,8 @@ export default function ChatPage({ currentSession }) {
   const [loading, setLoading] = useState(false)
   const [flowState, setFlowState] = useState(null)
   const [flowSuggestion, setFlowSuggestion] = useState(null)  // optional
+  const [showFlowModal, setShowFlowModal] = useState(false);
+  const [activeFlow, setActiveFlow] = useState(null);
 
   useEffect(() => {
     if (currentSession?.id) {
@@ -43,7 +46,23 @@ export default function ChatPage({ currentSession }) {
         setFlowState={setFlowState}
         flowSuggestion={flowSuggestion}
         setFlowSuggestion={setFlowSuggestion}
+        sessionId={currentSession?.id}
+        showFlowModal={showFlowModal}
+        setShowFlowModal={setShowFlowModal}
+        setActiveFlow={setActiveFlow}
+
       />
+      {showFlowModal && activeFlow && (
+        <FlowModal
+          flowId={activeFlow}
+          sessionId={currentSession?.id}
+          onClose={() => {
+            setShowFlowModal(false)
+            setActiveFlow(null)
+            setFlowSuggestion(null)
+          }}
+        />
+      )}
 
     </>
   )

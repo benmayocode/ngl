@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import PreviewPanel from './PreviewPanel'
 
-export default function ChatHistory({ chatHistory, loading, flowState, setFlowState, flowSuggestion, setFlowSuggestion }) {
+export default function ChatHistory({ chatHistory, loading, flowState, setFlowState, flowSuggestion, setFlowSuggestion, sessionId, showFlowModal, setShowFlowModal, setActiveFlow }) {
   const [selectedSources, setSelectedSources] = useState([])
   const [showModal, setShowModal] = useState(false)
 
@@ -9,19 +9,24 @@ export default function ChatHistory({ chatHistory, loading, flowState, setFlowSt
     setSelectedSources(sources)
     setShowModal(true)
   }
+  console.log('setActiveFlow', setActiveFlow)
 
-  const handleRunFlow = async () => {
+  const handleRunFlow = async (suggestion_flow_id) => {
+    console.log("Running flow suggestion:", suggestion_flow_id)
     try {
-      const res = await fetch(`/api/langgraph/run/${flowSuggestion.flow_id}`, {
+      const res = await fetch(`/api/langgraph/run/${suggestion_flow_id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: flowState?.session_id || flowSuggestion.sessionId }),  // fallback
+        body: JSON.stringify({
+          session_id: sessionId,
+          input: chatHistory[chatHistory.length - 1]?.content || "",
+        }),
       });
 
       const data = await res.json();
 
       setFlowState({
-        flow_id: flowSuggestion.flow_id,
+        flow_id: suggestion.flow_id,
         prompt: data.prompt,
       });
 
@@ -31,51 +36,62 @@ export default function ChatHistory({ chatHistory, loading, flowState, setFlowSt
     }
   };
 
+
   return (
     <div className="mt-4 px-3" style={{ paddingBottom: '120px' }}>
       {chatHistory.map((msg, index) => {
         const isUser = msg.role === 'user'
-
-        // ⛔️ Skip assistant flow suggestion message – we handle it separately below
-        if (!isUser && msg.flow_suggestion) return null
+        const msgFlowSuggestion = msg.flow_suggestion
 
         return (
           <div
             key={index}
             className={`d-flex mb-3 ${isUser ? 'justify-content-end' : 'justify-content-start'}`}
           >
-            <div
-              className={`alert ${isUser ? 'alert-primary' : 'alert-secondary'} mb-0 chat-message`}
-              style={{ width: isUser ? '75%' : '100%' }}
-            >
-              <p className="mb-0 mt-2">{msg.content}</p>
 
-              {!isUser && msg.sources?.length > 0 && (
+            {/* 💡 Flow suggestion block */}
+            {msgFlowSuggestion && (
+              <div className="alert alert-info d-flex justify-content-between align-items-center">
+                <div>
+                  💡 I found a saved flow that might help: <strong>{msgFlowSuggestion.title}</strong><br />
+                  Would you like to run it?
+                </div>
                 <button
-                  className="btn btn-link btn-sm mt-2"
-                  onClick={() => handleShowSources(msg.sources)}
+                  className="btn btn-sm btn-success ms-3"
+                  onClick={() => {
+                    setActiveFlow(msgFlowSuggestion)
+                    setShowFlowModal(true)
+                  }}
                 >
-                  🔍 View Sources
+                  Run Flow
                 </button>
-              )}
-            </div>
+
+              </div>
+            )}
+
+            {!msgFlowSuggestion && (
+
+              <div
+                className={`alert ${isUser ? 'alert-primary' : 'alert-secondary'} mb-0 chat-message`}
+                style={{ width: isUser ? '75%' : '100%' }}
+              >
+                <p className="mb-0 mt-2">{msg.content}</p>
+
+                {!isUser && msg.sources?.length > 0 && (
+                  <button
+                    className="btn btn-link btn-sm mt-2"
+                    onClick={() => handleShowSources(msg.sources)}
+                  >
+                    🔍 View Sources
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )
       })}
 
 
-      {/* 💡 Flow suggestion block */}
-      {flowSuggestion && (
-        <div className="alert alert-info d-flex justify-content-between align-items-center">
-          <div>
-            💡 I found a saved flow that might help: <strong>{flowSuggestion.title}</strong><br />
-            Would you like to run it?
-          </div>
-          <button className="btn btn-sm btn-success ms-3" onClick={handleRunFlow}>
-            Run Flow
-          </button>
-        </div>
-      )}
 
       {/* Sources modal */}
       {showModal && (

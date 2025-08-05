@@ -94,7 +94,14 @@ export default function ChatInput({ input, setInput, chatHistory, setChatHistory
 
                 setChatHistory((prev) => [
                     ...prev,
-                    { role: 'assistant', content: botMessage.content, sources: botMessage.sources || [] },
+                    {
+                        role: 'assistant',
+                        content: botMessage.content,
+                        sources: botMessage.sources || [],
+                        flow_suggestion: botMessage.flow_suggestion,
+                        flow_suggestion_title: botMessage.flow_suggestion_title,
+                        match_confidence: botMessage.match_confidence,
+                    },
                 ]);
 
                 // Optional: detect flow suggestion from backend
@@ -105,6 +112,7 @@ export default function ChatInput({ input, setInput, chatHistory, setChatHistory
                         flow_id: botMessage.flow_suggestion,
                         title: flow.name,
                         confidence: botMessage.match_confidence,
+                        sessionId: sessionId,
                     });
                 }
             }

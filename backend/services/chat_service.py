@@ -61,7 +61,7 @@ def build_chat_response(query: str, user_email: str):
 
         if match:
             return {
-                "reply": f"💡 I found a saved flow that might help: **{match['name']}**\nWould you like to run it?",
+                "reply": f"💡 SERVER: I found a saved flow that might help: **{match['name']}**\nWould you like to run it?",
                 "suggestedFlowId": match["id"],
                 "suggestedFlowName": match["name"],
                 "matchConfidence": round(SequenceMatcher(None, query.lower(), match['description'].lower()).ratio(), 2)

@@ -103,3 +103,9 @@ def get_messages(session_id: UUID):
         raise HTTPException(status_code=500, detail="Supabase query failed")
 
     return result.data
+
+@router.delete("/sessions/{session_id}")
+def delete_session(session_id: str):
+    supabase.table("chat_sessions").delete().eq("id", session_id).execute()
+    supabase.table("chat_messages").delete().eq("session_id", session_id).execute()
+    return {"success": True}

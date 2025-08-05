@@ -1,5 +1,5 @@
 # backend/routes/langgraph.py
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from services.langgraph_runner import run_flow
 from uuid import UUID
 from typing import Dict, Any
@@ -21,10 +21,13 @@ async def run_custom_langgraph(data: dict):
         return {"error": str(e)}
 
 @router.post("/run/{flow_id}")
-def start_flow(flow_id: str, payload: dict):
+async def start_flow(flow_id: str, request: Request):
     """
     Begin running a saved flow for a given chat session.
     """
+    payload = await request.json()
+
+    print ('Starting flow:', flow_id, 'with payload:', payload)
     session_id = UUID(payload.get("session_id"))
     input_text = payload.get("input") or ""
 

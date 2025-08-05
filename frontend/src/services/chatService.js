@@ -24,12 +24,20 @@ export async function fetchMessages(sessionId) {
 }
 
 export async function sendMessage(sessionId, role, content, sources = []) {
-  console.log("Sending message to session:", sessionId, { role, content, sources })
+  console.log("Sending message to session:", sessionId, { role, content, sources });
 
   const res = await axios.post(`${API_BASE}/${sessionId}/messages`, {
     role,
     content,
     sources,
-  })
-  return res.data
+  });
+  console.log("Received response:", res);
+  return {
+    assistant: res.data.assistant,
+  };
+}
+
+export async function deleteSession(sessionId) {
+  const res = await axios.delete(`${API_BASE}/${sessionId}`);
+  return res.data;
 }

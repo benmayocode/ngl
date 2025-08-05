@@ -17,6 +17,7 @@ import FlowSaveModal from '../components/FlowSaveModal';
 import WebSearchNode from '../components/nodes/WebSearchNode';
 import ListingPageFinderNode from '../components/nodes/ListingPageFInderNode';
 import { rehydrateNodesFromRegistry } from '../components/nodes/registry';
+import { injectOnChangeHandlers } from '../components/nodes/registry';
 
 const nodeTypes = {
   prompt: PromptNode,
@@ -43,7 +44,6 @@ export default function FlowEditor({
   const [showInspector, setShowInspector] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const navigate = useNavigate();
   const flowIdFromUrl = searchParams.get("id");
 
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
@@ -75,7 +75,10 @@ export default function FlowEditor({
 
       // Set updated nodes/edges from backend
       if (result?.nodes && result?.edges) {
-        const updatedNodes = rehydrateNodesFromRegistry(result.nodes, setNodes);
+        const updatedNodes = injectOnChangeHandlers(
+          rehydrateNodesFromRegistry(selected.nodes, setNodes),
+          setNodes
+        );
         setNodes(updatedNodes);
         setEdges(result.edges);
       }
@@ -160,7 +163,10 @@ export default function FlowEditor({
           const selected = flows.find((f) => f.id === flowIdFromUrl);
           if (selected) {
             setFlowData(selected);
-            const updatedNodes = rehydrateNodesFromRegistry(selected.nodes, setNodes);
+            const updatedNodes = injectOnChangeHandlers(
+              rehydrateNodesFromRegistry(selected.nodes, setNodes),
+              setNodes
+            );
             setNodes(updatedNodes);
             setEdges(selected.edges);
           }

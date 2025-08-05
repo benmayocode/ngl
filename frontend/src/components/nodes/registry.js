@@ -17,3 +17,28 @@ export function rehydrateNodesFromRegistry(nodes, setNodes) {
     return node;
   });
 }
+
+export function injectOnChangeHandlers(nodes, setNodes) {
+  return nodes.map((node) => {
+    const onChange = (newData) => {
+      setNodes((prev) =>
+        prev.map((n) =>
+          n.id === node.id
+            ? {
+                ...n,
+                data: { ...newData, onChange }, // re-attach onChange
+              }
+            : n
+        )
+      );
+    };
+
+    return {
+      ...node,
+      data: {
+        ...node.data,
+        onChange,
+      },
+    };
+  });
+}

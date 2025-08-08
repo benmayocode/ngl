@@ -9,7 +9,6 @@ export default function ChatHistory({ chatHistory, loading, flowState, setFlowSt
     setSelectedSources(sources)
     setShowModal(true)
   }
-  console.log('setActiveFlow', setActiveFlow)
 
   const handleRunFlow = async (suggestionFlowId) => {
     console.log("Running flow suggestion:", suggestionFlowId)

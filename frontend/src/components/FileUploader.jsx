@@ -3,7 +3,7 @@ import { useState, useRef } from 'react'
 import axios from 'axios'
 import { Plus } from 'lucide-react'  // or use any icon library you prefer
 
-export default function FileUploader({ type = 'global', onUpload }) {
+export default function FileUploader({ type = 'global' }) {
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef()
 

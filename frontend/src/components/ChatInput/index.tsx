@@ -1,14 +1,15 @@
-// frontend/src/components/ChatInput.jsx
+// frontend/src/components/ChatInput.tsx
 import { useEffect, useRef, useState } from 'react'
-import FileUploader from '../components/FileUploader'
+import FileUploader from '.././FileUploader'
 import axios from 'axios'
-import { sendMessage } from '../services/chatService' // ⬅️ import it
-import { useAuth } from '../context/AuthContext';
+import { sendMessage } from '../../services/chatService'
+import type { ChatInputProps } from './types'
+import { Message } from '../../types'
 
-export default function ChatInput({ input, setInput, chatHistory, setChatHistory, loading, setLoading, sessionId, flowState, setFlowState, flowSuggestion, setFlowSuggestion }) {
+export default function ChatInput({ input, setInput, setChatHistory, loading, setLoading, sessionId, flowState, setFlowState, setFlowSuggestion } : ChatInputProps) {
     const [style, setStyle] = useState({ width: 0, left: 0 })
-    const textareaRef = useRef(null)
-    const { user } = useAuth();
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+    
 
     useEffect(() => {
         const updatePosition = () => {
@@ -31,11 +32,9 @@ export default function ChatInput({ input, setInput, chatHistory, setChatHistory
     useEffect(() => {
         const textarea = textareaRef.current
         if (!textarea || input.length === 0) return
-
         const lineHeight = 24
         const minHeight = 2 * lineHeight
         const maxHeight = 6 * lineHeight
-
         textarea.style.height = 'auto'
         textarea.style.height = `${Math.max(minHeight, Math.min(textarea.scrollHeight, maxHeight))}px`
 
@@ -50,7 +49,7 @@ export default function ChatInput({ input, setInput, chatHistory, setChatHistory
         setLoading(true);
 
         // Optimistically append user message
-        setChatHistory((prev) => [
+        setChatHistory((prev: Message[]) => [
             ...prev,
             { role: 'user', content: userMessage },
         ]);
@@ -87,6 +86,7 @@ export default function ChatInput({ input, setInput, chatHistory, setChatHistory
 
             } else {
                 // 🤖 Normal GPT chat (calls `/sessions/:id/messages`)
+                if (!sessionId) return;
                 const res = await sendMessage(sessionId, 'user', userMessage);
                 const botMessage = res.assistant;
 

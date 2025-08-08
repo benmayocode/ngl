@@ -1,5 +1,5 @@
 // src/pages/ChatPage.tsx
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect } from 'react'
 import ChatHistory from '../components/ChatHistory'
 import ChatInput from '../components/ChatInput'
 import FlowModal from '../components/FlowModal'
@@ -18,7 +18,8 @@ export default function ChatPage({ currentSession }: ChatPageProps) {
   const [flowState, setFlowState] = useState<FlowState | null>(null)
   const [flowSuggestion, setFlowSuggestion] = useState<FlowSuggestion | null>(null)
   const [showFlowModal, setShowFlowModal] = useState<boolean>(false);
-  const [activeFlow, setActiveFlow] = useState(null);
+  // activeFlow is a UUID
+  const [activeFlow, setActiveFlow] = useState<string | null>(null);
 
   useEffect(() => {
     if (currentSession?.id) {
@@ -36,7 +37,7 @@ export default function ChatPage({ currentSession }: ChatPageProps) {
         setChatHistory={setChatHistory}
         loading={loading}
         setLoading={setLoading}
-        sessionId={currentSession?.id}
+        sessionId={currentSession?.id ?? null}
         flowState={flowState}
         setFlowState={setFlowState}
         flowSuggestion={flowSuggestion}

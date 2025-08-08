@@ -11,10 +11,10 @@ export default function ChatHistory({ chatHistory, loading, flowState, setFlowSt
   }
   console.log('setActiveFlow', setActiveFlow)
 
-  const handleRunFlow = async (suggestion_flow_id) => {
-    console.log("Running flow suggestion:", suggestion_flow_id)
+  const handleRunFlow = async (suggestionFlowId) => {
+    console.log("Running flow suggestion:", suggestionFlowId)
     try {
-      const res = await fetch(`/api/langgraph/run/${suggestion_flow_id}`, {
+      const res = await fetch(`/api/langgraph/run/${suggestionFlowId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -26,7 +26,7 @@ export default function ChatHistory({ chatHistory, loading, flowState, setFlowSt
       const data = await res.json();
 
       setFlowState({
-        flow_id: suggestion.flow_id,
+        flowId: suggestion.flow_id,
         prompt: data.prompt,
       });
 

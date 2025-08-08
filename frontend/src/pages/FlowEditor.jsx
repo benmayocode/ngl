@@ -62,32 +62,84 @@ export default function FlowEditor({
     setHasUnsavedChanges(current !== original);
   }, [nodes, edges, flowData]);
 
-  const runFlow = async () => {
-    try {
-      const res = await fetch('http://localhost:8000/api/langgraph/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flow: { nodes, edges }, input: inputText })
-      });
+  const runFlow = () => {
+    const socket = new WebSocket('ws://localhost:8000/api/langgraph/execute');
 
-      const json = await res.json();
-      const { result } = json;
+    socket.onopen = () => {
+      console.log("🟢 WebSocket connected. Sending flow...");
+      socket.send(JSON.stringify({
+        flow: { nodes, edges },
+        input: inputText
+      }));
+    };
 
-      // Set updated nodes/edges from backend
-      if (result?.nodes && result?.edges) {
-        const updatedNodes = injectOnChangeHandlers(
-          rehydrateNodesFromRegistry(selected.nodes, setNodes),
-          setNodes
+    socket.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      console.log("📬 WebSocket message received:", message);
+
+      if (message.type === 'status') {
+        const { nodeId, status, detail } = message;
+        setNodes((prev) =>
+          prev.map((n) =>
+            n.id === nodeId
+              ? {
+                ...n,
+                data: {
+                  ...n.data,
+                  status,
+                  error: status === 'error' ? detail?.message : undefined,
+                },
+              }
+              : n
+          )
         );
-        setNodes(updatedNodes);
-        setEdges(result.edges);
       }
 
-      console.log('Flow executed and updated graph applied.');
-    } catch (err) {
-      console.error('Error executing flow:', err);
-    }
+      else if (message.type === 'complete') {
+        const { nodes: updatedNodes, edges: updatedEdges } = message.result;
+
+        // Merge in existing status & error data
+        setNodes((prev) => {
+          const statusMap = Object.fromEntries(
+            prev.map((n) => [n.id, {
+              status: n.data.status,
+              error: n.data.error,
+            }])
+          );
+
+          const merged = updatedNodes.map((node) => ({
+            ...node,
+            data: {
+              ...node.data,
+              ...statusMap[node.id], // merge in status
+            }
+          }));
+
+          return injectOnChangeHandlers(
+            rehydrateNodesFromRegistry(merged, setNodes),
+            setNodes
+          );
+        });
+
+        setEdges(updatedEdges);
+        console.log("✅ Flow execution complete");
+      }
+
+      else if (message.type === 'error') {
+        console.error("❌ Flow execution error:", message.message);
+      }
+    };
+
+
+    socket.onerror = (err) => {
+      console.error("WebSocket error:", err);
+    };
+
+    socket.onclose = () => {
+      console.log("🔌 WebSocket connection closed.");
+    };
   };
+
 
   const saveFlow = async (name, description) => {
     const payload = {

@@ -109,7 +109,7 @@ export default function ChatInput({ input, setInput, chatHistory, setChatHistory
                     const res = await fetch(`/api/flows/${botMessage.flow_suggestion}`);
                     const flow = await res.json();
                     setFlowSuggestion({
-                        flow_id: botMessage.flow_suggestion,
+                        flowId: botMessage.flow_suggestion,
                         title: flow.name,
                         confidence: botMessage.match_confidence,
                         sessionId: sessionId,

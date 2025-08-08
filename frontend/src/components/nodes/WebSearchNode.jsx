@@ -2,8 +2,22 @@
 import { Handle, Position } from 'reactflow';
 
 export default function WebSearchNode({ data, isConnectable }) {
+  const statusColor = {
+    running: '#0d6efd',   // blue
+    complete: '#198754',  // green
+    error: '#dc3545'      // red
+  }[data.status] || '#333';
+
   return (
-    <div style={{ padding: 10, border: '1px solid #333', borderRadius: 8, background: '#fff', width: 300 }}>
+    <div
+      style={{
+        padding: 10,
+        border: `2px solid ${statusColor}`,
+        borderRadius: 8,
+        background: '#fff',
+        width: 300
+      }}
+    >
       <strong>Web Search</strong>
 
       <div className="mb-2 mt-2">
@@ -31,3 +45,4 @@ export default function WebSearchNode({ data, isConnectable }) {
     </div>
   );
 }
+

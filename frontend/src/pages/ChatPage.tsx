@@ -1,17 +1,23 @@
-// src/pages/ChatPage.jsx
-import { useState, useEffect } from 'react'
+// src/pages/ChatPage.tsx
+import { useState, useEffect, use } from 'react'
 import ChatHistory from '../components/ChatHistory'
 import ChatInput from '../components/ChatInput'
 import FlowModal from '../components/FlowModal'
 import { fetchMessages } from '../services/chatService'
 
-export default function ChatPage({ currentSession }) {
-  const [input, setInput] = useState('')
-  const [chatHistory, setChatHistory] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [flowState, setFlowState] = useState(null)
-  const [flowSuggestion, setFlowSuggestion] = useState(null)  // optional
-  const [showFlowModal, setShowFlowModal] = useState(false);
+import type { ChatSession, Message, FlowState, FlowSuggestion } from '../types'
+
+interface ChatPageProps {
+  currentSession: ChatSession | null;
+}
+
+export default function ChatPage({ currentSession }: ChatPageProps) {
+  const [input, setInput] = useState<string>('')
+  const [chatHistory, setChatHistory] = useState<Message[]>([])
+  const [loading, setLoading] = useState<boolean>(false)
+  const [flowState, setFlowState] = useState<FlowState | null>(null)
+  const [flowSuggestion, setFlowSuggestion] = useState<FlowSuggestion | null>(null)
+  const [showFlowModal, setShowFlowModal] = useState<boolean>(false);
   const [activeFlow, setActiveFlow] = useState(null);
 
   useEffect(() => {
@@ -37,11 +43,8 @@ export default function ChatPage({ currentSession }) {
         setFlowSuggestion={setFlowSuggestion}
       />
       <ChatHistory
-        input={input}
-        setInput={setInput}
         chatHistory={chatHistory}
         loading={loading}
-        setLoading={setLoading}
         flowState={flowState}
         setFlowState={setFlowState}
         flowSuggestion={flowSuggestion}
@@ -50,7 +53,6 @@ export default function ChatPage({ currentSession }) {
         showFlowModal={showFlowModal}
         setShowFlowModal={setShowFlowModal}
         setActiveFlow={setActiveFlow}
-
       />
       {showFlowModal && activeFlow && (
         <FlowModal

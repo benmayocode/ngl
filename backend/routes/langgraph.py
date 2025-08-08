@@ -1,6 +1,6 @@
 # backend/routes/langgraph.py
-from fastapi import APIRouter, HTTPException, Request
-from services.langgraph_runner import run_flow
+from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisconnect
+from services.langgraph_runner import run_flow_with_updates
 from uuid import UUID
 from typing import Dict, Any
 from services.flow_storage import get_flow_by_id
@@ -10,15 +10,19 @@ router = APIRouter()
 # In-memory flow state store
 active_flow_runs: Dict[UUID, Dict[str, Any]] = {}
 
-@router.post("/execute")
-async def run_custom_langgraph(data: dict):
-    flow_data = data.get("flow")
-    input_text = data.get("input")
+@router.websocket("/execute")
+async def websocket_run_custom_langgraph(websocket: WebSocket):
+    await websocket.accept()
     try:
-        output = run_flow(flow_data, input_text)
-        return {"result": output}
+        # Receive initial flow execution request
+        data = await websocket.receive_json()
+        flow_data = data.get("flow")
+        input_text = data.get("input")
+        await run_flow_with_updates(flow_data, input_text, websocket)
+    except WebSocketDisconnect:
+        print("🔌 WebSocket disconnected.")
     except Exception as e:
-        return {"error": str(e)}
+        await websocket.send_json({ "type": "error", "message": str(e) })
 
 @router.post("/run/{flow_id}")
 async def start_flow(flow_id: str, request: Request):
@@ -36,7 +40,7 @@ async def start_flow(flow_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Flow not found")
 
     # Run flow with initial input
-    result = run_flow(flow_data, input_text)
+    result = run_flow_with_updates(flow_data, input_text)
 
     # Store the state (you can expand this later)
     active_flow_runs[session_id] = {
@@ -72,7 +76,7 @@ def run_flow_step(payload: dict):
         raise HTTPException(status_code=404, detail="Flow not found")
 
     # Resume flow with new input
-    result = run_flow(flow_data, user_input)
+    result = run_flow_with_updates(flow_data, user_input)
 
     # Update flow run state
     flow_run["last_result"] = result

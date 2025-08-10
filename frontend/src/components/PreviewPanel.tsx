@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { pdfjs, Document, Page } from 'react-pdf'
-import workerSrc from 'pdfjs-dist/build/pdf.worker.mjs?url'
-
-pdfjs.GlobalWorkerOptions.workerSrc = workerSrc
+// Dynamically set the workerSrc for pdfjs
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`
 
 export default function PreviewPanel({ doc }) {
-  const [fileBlob, setFileBlob] = useState(null)
-  const [fileType, setFileType] = useState(null)
-  const [numPages, setNumPages] = useState(null)
-  const [currentPage, setCurrentPage] = useState(1)
+  const [fileBlob, setFileBlob] = useState<File | null>(null)
+  const [fileType, setFileType] = useState<string | null>(null)
+  const [numPages, setNumPages] = useState<number>(0)
+  const [currentPage, setCurrentPage] = useState<number>(1)
 
   const docId = doc?.id
   const fileName = doc?.path

@@ -2,6 +2,14 @@
 
 import { NODE_DEFINITIONS } from './nodes';
 
+import type {
+  Node,
+  Edge,
+  OnNodesChange,
+  OnEdgesChange,
+} from 'reactflow';
+
+
 export default function SidebarFlow({ setNodes }) {
   const addNode = (def) => {
     const id = `node_${Date.now()}`;

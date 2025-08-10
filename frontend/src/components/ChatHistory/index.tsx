@@ -3,7 +3,7 @@ import PreviewPanel from '../PreviewPanel'
 import type { ChatHistoryProps } from './types';
 
 export default function ChatHistory({ chatHistory, loading, setShowFlowModal, setActiveFlow }: ChatHistoryProps) {
-  const [selectedSources, setSelectedSources] = useState([])
+  const [selectedSources, setSelectedSources] = useState<Array<any>>([])
   const [showModal, setShowModal] = useState(false)
 
   const handleShowSources = (sources) => {
@@ -64,12 +64,9 @@ export default function ChatHistory({ chatHistory, loading, setShowFlowModal, se
           </div>
         )
       })}
-
-
-
       {/* Sources modal */}
       {showModal && (
-        <div className="modal show d-block" tabIndex="-1" onClick={() => setShowModal(false)}>
+        <div className="modal show d-block" tabIndex={-1} onClick={() => setShowModal(false)}>
           <div className="modal-dialog modal-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-content">
               <div className="modal-header">
@@ -88,7 +85,6 @@ export default function ChatHistory({ chatHistory, loading, setShowFlowModal, se
           </div>
         </div>
       )}
-
       {/* Typing dots */}
       {loading && (
         <div className="d-flex justify-content-start mb-3">

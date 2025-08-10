@@ -18,7 +18,7 @@ export type Message = {
     role: 'user' | 'assistant'
     content: string
     flow_suggestion?: FlowSuggestion | null
-    sources?: string[] // Array of source IDs or names
+    sources: string[] // Array of source IDs or names
 }
 
 export type FlowSuggestion = {

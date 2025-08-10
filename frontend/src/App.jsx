@@ -6,6 +6,7 @@ import ChatPage from './pages/ChatPage'
 import AdminView from './pages/AdminView'
 import FlowEditor from './pages/FlowEditor'
 import ShellLayout from './components/ShellLayout'
+import FlowShellLayout from './components/FlowShellLayout'
 
 import { useNodesState, useEdgesState } from 'reactflow'
 
@@ -39,8 +40,10 @@ function AuthenticatedApp() {
       <Route
         path="/flow"
         element={
-          <ShellLayout flowProps={{ nodes, setNodes, onNodesChange, edges, setEdges, onEdgesChange }}>
+          <FlowShellLayout setNodes= {setNodes }>
+            
             {({ currentSession }) => (
+              
               <FlowEditor
                 currentSession={currentSession}
                 nodes={nodes}
@@ -51,7 +54,7 @@ function AuthenticatedApp() {
                 onEdgesChange={onEdgesChange}
               />
             )}
-          </ShellLayout>
+          </FlowShellLayout>
         }
       />
 

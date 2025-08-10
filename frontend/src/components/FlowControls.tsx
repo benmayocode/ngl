@@ -1,4 +1,15 @@
-// frontend/src/components/FlowControls.jsx
+// frontend/src/components/FlowControls.tsx
+
+interface FlowControlsProps {
+  flowData: any;
+  savedFlows: any[];
+  onLoadFlow: (flowId: string) => void;
+  onShowSaveModal: () => void;
+  runFlow: () => void;
+  hasUnsavedChanges: boolean;
+  handleNewFlow: () => void;
+}
+
 export default function FlowControls({
   flowData,
   savedFlows,
@@ -7,7 +18,7 @@ export default function FlowControls({
   runFlow,
   hasUnsavedChanges,
   handleNewFlow
-}) {
+}: FlowControlsProps) {
   return (
     <div className="p-3 bg-light border-bottom">
       {/* Flow name */}

@@ -3,8 +3,6 @@ import axios from 'axios'
 const API_BASE = 'http://localhost:8000/api/sessions'
 
 export async function fetchSessions(userEmail) {
-  console.log("Fetching sessions for user:", userEmail)
-  console.log(`${API_BASE}?user_email=${encodeURIComponent(userEmail)}`)
   const res = await axios.get(`${API_BASE}?user_email=${encodeURIComponent(userEmail)}`)
   console.log("Fetched sessions:", res.data)
   return res.data

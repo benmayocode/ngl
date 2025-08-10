@@ -1,13 +1,20 @@
-// frontend/src/components/DevInspector.jsx
-import React from 'react';
+// frontend/src/components/DevInspector.tsx
 
-export default function DevInspector({ show, onClose, nodes, edges }) {
+interface DevInspectorProps {
+  show: boolean;
+  onClose: () => void;
+  nodes: any[];
+  edges: any[];
+}
+
+export default function DevInspector({ show, onClose, nodes, edges } : DevInspectorProps) {
+  
   if (!show) return null;
 
   return (
     <div
       className="modal fade show d-block"
-      tabIndex="-1"
+      tabIndex={-1}
       role="dialog"
       style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
     >

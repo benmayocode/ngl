@@ -1,13 +1,18 @@
 // src/components/FileUploader.jsx
 import { useState, useRef } from 'react'
 import axios from 'axios'
-import { Plus } from 'lucide-react'  // or use any icon library you prefer
 
-export default function FileUploader({ type = 'global' }) {
-  const [uploading, setUploading] = useState(false)
-  const fileInputRef = useRef()
+interface FileUploaderProps {
+  type?: 'global' | 'private';
+  onUpload?: () => void;
+}
 
-  const handleFileChange = async (e) => {
+export default function FileUploader({ type = 'global', onUpload }: FileUploaderProps) {
+  const [uploading, setUploading] = useState<boolean>(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return
     const file = e.target.files[0]
     if (!file) return
 
@@ -25,7 +30,7 @@ export default function FileUploader({ type = 'global' }) {
       alert('Upload failed: ' + err.message)
     }
     setUploading(false)
-    e.target.value = null  // reset file input
+    e.target.value = ''  // reset file input
 
   }
 
@@ -42,7 +47,7 @@ export default function FileUploader({ type = 'global' }) {
         className="btn btn-light"
         onClick={() => {
           console.log("Button clicked")
-          fileInputRef.current.click()
+          fileInputRef.current?.click()
         }}
         title="Upload document"
       >

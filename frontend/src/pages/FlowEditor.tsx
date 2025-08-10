@@ -1,4 +1,4 @@
-// frontend/src/pages/FlowEditor.jsx
+// frontend/src/pages/FlowEditor.tsx
 import { useCallback, useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import ReactFlow, {
@@ -159,7 +159,18 @@ export default function FlowEditor({
           body: JSON.stringify(payload),
         });
         json = await res.json();
-        setSavedFlows((prev) => prev.map((f) => (f.id === json.id ? json : f)));
+        setSavedFlows((prevFlows) => {
+          return prevFlows.map((flow) => {
+            const isTargetFlow = flow.id === json.id;
+
+            if (isTargetFlow) {
+              const updatedFlow = json;
+              return updatedFlow;
+            }
+
+            return flow;
+          });
+        });
       } else {
         res = await fetch('http://localhost:8000/api/flows/', {
           method: 'POST',

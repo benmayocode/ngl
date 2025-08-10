@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import PreviewPanel from './PreviewPanel'
+import PreviewPanel from '../PreviewPanel'
+import type { ChatHistoryProps } from './types';
 
-export default function ChatHistory({ chatHistory, loading, flowState, setFlowState, flowSuggestion, setFlowSuggestion, sessionId, showFlowModal, setShowFlowModal, setActiveFlow }) {
+export default function ChatHistory({ chatHistory, loading, setShowFlowModal, setActiveFlow }: ChatHistoryProps) {
   const [selectedSources, setSelectedSources] = useState([])
   const [showModal, setShowModal] = useState(false)
 
@@ -9,32 +10,6 @@ export default function ChatHistory({ chatHistory, loading, flowState, setFlowSt
     setSelectedSources(sources)
     setShowModal(true)
   }
-
-  const handleRunFlow = async (suggestionFlowId) => {
-    console.log("Running flow suggestion:", suggestionFlowId)
-    try {
-      const res = await fetch(`/api/langgraph/run/${suggestionFlowId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: sessionId,
-          input: chatHistory[chatHistory.length - 1]?.content || "",
-        }),
-      });
-
-      const data = await res.json();
-
-      setFlowState({
-        flowId: suggestion.flow_id,
-        prompt: data.prompt,
-      });
-
-      setFlowSuggestion(null);
-    } catch (err) {
-      console.error("Failed to start flow:", err);
-    }
-  };
-
 
   return (
     <div className="mt-4 px-3" style={{ paddingBottom: '120px' }}>
@@ -58,7 +33,7 @@ export default function ChatHistory({ chatHistory, loading, flowState, setFlowSt
                 <button
                   className="btn btn-sm btn-success ms-3"
                   onClick={() => {
-                    setActiveFlow(msgFlowSuggestion)
+                    setActiveFlow(msgFlowSuggestion.flowId)
                     setShowFlowModal(true)
                   }}
                 >
@@ -76,7 +51,7 @@ export default function ChatHistory({ chatHistory, loading, flowState, setFlowSt
               >
                 <p className="mb-0 mt-2">{msg.content}</p>
 
-                {!isUser && msg.sources?.length > 0 && (
+                {!isUser && msg.sources.length > 0 && (
                   <button
                     className="btn btn-link btn-sm mt-2"
                     onClick={() => handleShowSources(msg.sources)}

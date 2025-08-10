@@ -1,9 +1,15 @@
 // src/types.ts
 
 import { Type } from "lucide-react";
+import type { Node, Edge } from "reactflow";
+
+// Define UUID and SessionId types for better clarity
+export type UUID = string;
+
+export type SessionId = UUID;
 
 export interface ChatSession {
-    id: string;
+    id: UUID;
     title: string;
     createdAt: string;
 }
@@ -11,6 +17,8 @@ export interface ChatSession {
 export type Message = {
     role: 'user' | 'assistant'
     content: string
+    flow_suggestion?: FlowSuggestion | null
+    sources?: string[] // Array of source IDs or names
 }
 
 export type FlowSuggestion = {
@@ -23,4 +31,12 @@ export type FlowSuggestion = {
 export interface FlowState {
     flowId: string;
     prompt: any
+}
+
+export interface Flow {
+    id: string;
+    name: string;
+    nodes: Node[];
+    edges: Edge[];
+    description?: string;
 }

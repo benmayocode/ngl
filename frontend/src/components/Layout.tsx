@@ -1,13 +1,12 @@
 // frontend/src/components/Layout.jsx
 import { useState } from 'react'
 import ChatHistory from './ChatHistory'
-import axios from 'axios'
-
+import type {Message} from '../types' 
 
 export default function Layout() {
-    const [input, setInput] = useState('')
-    const [chatHistory, setChatHistory] = useState([])
-    const [loading, setLoading] = useState(false)
+    const [input, setInput] = useState<string>('')
+    const [chatHistory, setChatHistory] = useState<Array<Message>>([])
+    const [loading, setLoading] = useState<boolean>(false)
 
 
     return (
@@ -23,11 +22,9 @@ export default function Layout() {
                     {/* Scrollable chat area */}
                     <div className="overflow-auto px-4 pt-4 pb-5" style={{ height: '100%', paddingBottom: '7rem' }}>
                         <ChatHistory
-                            input={input}
-                            setInput={setInput}
                             chatHistory={chatHistory}
                             loading={loading}
-                            setLoading={setLoading}
+                            
                         />
                     </div>
                 </div>

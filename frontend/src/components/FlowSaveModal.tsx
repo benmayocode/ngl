@@ -1,12 +1,20 @@
 import { useState, useEffect } from 'react';
+import type { Flow } from '../types';
 
-export default function FlowSaveModal({ show, onClose, onSave, flowData }) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [success, setSuccess] = useState(false);
-  const [progress, setProgress] = useState(100);
-  console.log('Flow data loaded:', flowData);
+interface FlowSaveModalProps {
+  show: boolean;
+  onClose: () => void;
+  onSave: (name: string, description: string) => Promise<boolean | void>;
+  flowData: Flow | null;
+}
 
+export default function FlowSaveModal({ show, onClose, onSave, flowData } : FlowSaveModalProps) {
+  const [name, setName] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [success, setSuccess] = useState<boolean>(false);
+  const [progress, setProgress] = useState<number>(100);
+
+  
   useEffect(() => {
     if (flowData) {
       setName(flowData.name || '');
@@ -37,7 +45,7 @@ export default function FlowSaveModal({ show, onClose, onSave, flowData }) {
   if (!show) return null;
 
   return (
-    <div className="modal fade show d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+    <div className="modal fade show d-block" tabIndex={-1} role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
       <div className="modal-dialog" role="document">
         <div className="modal-content">
 

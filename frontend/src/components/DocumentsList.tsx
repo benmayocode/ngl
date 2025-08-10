@@ -1,8 +1,20 @@
+// frontend/src/components/DocumentsList.tsx
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 
-export default function DocumentList({ type = 'global' }) {
-  const [documents, setDocuments] = useState([])
+interface DocumentsListProps {
+  type?: 'global' | 'private'
+}
+
+interface Document {
+  id: string;
+  name: string;
+  uploaded_at: string;
+  summary?: string;
+}
+
+export default function DocumentList({ type = 'global' }: DocumentsListProps) {
+  const [documents, setDocuments] = useState<Document[]>([])
 
   useEffect(() => {
     axios.get(`http://localhost:8000/api/documents?doc_type=${type}`)

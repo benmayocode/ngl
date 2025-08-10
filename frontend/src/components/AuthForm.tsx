@@ -1,11 +1,13 @@
+// frontend/src/components/AuthForm.tsx
 import { useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import type { AuthError } from '@supabase/supabase-js'
 
 export default function AuthForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
 
   const signIn = async () => {
     setLoading(true)
@@ -26,7 +28,7 @@ export default function AuthForm() {
   const signInWithMagicLink = async () => {
     setLoading(true)
     setError(null)
-    const { error } = await supabase.auth.signInWithOtp({ email })
+    const { error }: { error: AuthError | null } = await supabase.auth.signInWithOtp({ email })
     if (error) setError(error.message)
     setLoading(false)
   }

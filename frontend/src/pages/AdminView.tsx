@@ -3,9 +3,16 @@ import axios from 'axios'
 import FileUploader from '../components/FileUploader'
 import PreviewPanel from '../components/PreviewPanel'
 
+interface RagDocument {
+  id: string;
+  name: string;
+  summary: string | null;
+  uploaded_at: string;
+}
+
 export default function AdminView() {
-  const [documents, setDocuments] = useState([])
-  const [selectedDoc, setSelectedDoc] = useState(null)
+  const [documents, setDocuments] = useState<RagDocument[]>([])
+  const [selectedDoc, setSelectedDoc] = useState<RagDocument | null>(null)
 
   const fetchDocuments = useCallback(() => {
     axios.get('http://localhost:8000/api/documents?doc_type=global')

@@ -5,7 +5,7 @@ import ChatInput from '../components/ChatInput'
 import FlowModal from '../components/FlowModal'
 import { fetchMessages } from '../services/chatService'
 
-import type { ChatSession, Message, FlowState, FlowSuggestion } from '../types'
+import type { ChatSession, Message, FlowState, FlowSuggestion, SessionId } from '../types'
 
 interface ChatPageProps {
   currentSession: ChatSession | null;
@@ -50,7 +50,6 @@ export default function ChatPage({ currentSession }: ChatPageProps) {
         setFlowState={setFlowState}
         flowSuggestion={flowSuggestion}
         setFlowSuggestion={setFlowSuggestion}
-        sessionId={currentSession?.id}
         showFlowModal={showFlowModal}
         setShowFlowModal={setShowFlowModal}
         setActiveFlow={setActiveFlow}

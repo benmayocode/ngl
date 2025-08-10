@@ -1,26 +1,27 @@
-import { useEffect, useState, useCallback } from 'react';
+// frontend/src/components/FlowModal.tsx
+import { useEffect, useState } from 'react';
 import ReactFlow, { Background, Controls } from 'reactflow';
-import DevInspector from '../components/DevInspector';
-import PromptNode from '../components/nodes/PromptNode';
-import OutputNode from '../components/nodes/OutputNode';
-import FlowControls from '../components/FlowControls';
-import FlowSaveModal from '../components/FlowSaveModal';
-import WebSearchNode from '../components/nodes/WebSearchNode';
-import ListingPageFinderNode from '../components/nodes/ListingPageFInderNode';
-import { rehydrateNodesFromRegistry } from '../components/nodes/registry';
+import PromptNode from './nodes/PromptNode';
+import OutputNode from './nodes/OutputNode';
+import WebSearchNode from './nodes/WebSearchNode';
+import ListingPageFinderNode from './nodes/ListingPageFInderNode';
+import { rehydrateNodesFromRegistry } from './nodes/registry';
 import { useNavigate } from 'react-router-dom';
+import type { Node, Edge } from "reactflow";
+
+import type { Flow } from '../types';
 
 const nodeTypes = {
   prompt: PromptNode,
   output: OutputNode,
   web_search: WebSearchNode,
   listing_page_finder: ListingPageFinderNode,
-
 };
 
-export default function FlowModal({ flowId, sessionId, onClose }) {
-  const [flowData, setFlowData] = useState(null);
-  const [inputs, setInputs] = useState({});
+
+export default function FlowModal({ flowId, sessionId, onClose }: { flowId: string; sessionId: string | undefined; onClose: () => void }) {
+  const [flowData, setFlowData] = useState<Flow | null>(null);
+  const [inputs, setInputs] = useState<Record<string, unknown>>({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,8 +33,8 @@ export default function FlowModal({ flowId, sessionId, onClose }) {
         setFlowData(data);
 
         // Optional: Prepopulate inputs for known start nodes
-        const initialInputs = {};
-        data.nodes?.forEach((node) => {
+        const initialInputs: Record<string, unknown> = {};
+        data.nodes?.forEach((node: Node) => {
           if (node.type === 'input') {
             initialInputs[node.id] = '';
           }
@@ -46,10 +47,6 @@ export default function FlowModal({ flowId, sessionId, onClose }) {
 
     fetchFlow();
   }, [flowId]);
-
-  const handleChange = (id, value) => {
-    setInputs((prev) => ({ ...prev, [id]: value }));
-  };
 
   const handleRun = async () => {
     try {
@@ -74,7 +71,7 @@ export default function FlowModal({ flowId, sessionId, onClose }) {
   if (!flowData) return null;
 
   return (
-    <div className="modal show d-block" tabIndex="-1" onClick={onClose}>
+    <div className="modal show d-block" tabIndex={-1} onClick={onClose}>
       <div className="modal-dialog modal-xl" onClick={(e) => e.stopPropagation()}>
         <div className="modal-content">
           <div className="modal-header">

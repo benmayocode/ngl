@@ -17,13 +17,13 @@ export interface ChatSession {
 export type Message = {
     role: 'user' | 'assistant'
     content: string
-    flow_suggestion?: FlowSuggestion | null
+    flowSuggestion?: FlowSuggestion | null
     sources: string[] // Array of source IDs or names
 }
 
 export type FlowSuggestion = {
     flowId: string;
-    title: string;
+    title: string | null | undefined;
     confidence: number;
     sessionId: string;
 }

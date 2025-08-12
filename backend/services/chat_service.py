@@ -60,6 +60,7 @@ def build_chat_response(query: str, user_email: str):
         match = suggest_matching_flow(query, flows)
 
         if match:
+            print ("Found matching flow:", match)
             return {
                 "reply": f"💡 SERVER: I found a saved flow that might help: **{match['name']}**\nWould you like to run it?",
                 "suggestedFlowId": match["id"],

@@ -1,4 +1,5 @@
 import axios from 'axios'
+import camelcaseKeys from 'camelcase-keys'
 
 const API_BASE = 'http://localhost:8000/api/sessions'
 
@@ -18,7 +19,8 @@ export async function createSession({ userEmail, title }) {
 
 export async function fetchMessages(sessionId) {
   const res = await axios.get(`${API_BASE}/${sessionId}/messages`)
-  return res.data
+  console.log("Fetched messages for session:", sessionId, res.data)
+  return camelcaseKeys(res.data, { deep: true })
 }
 
 export async function sendMessage(sessionId: string | null, role: string, content: string, sources: any[] = []) {
@@ -34,7 +36,7 @@ export async function sendMessage(sessionId: string | null, role: string, conten
   });
   console.log("Received response:", res);
   return {
-    assistant: res.data.assistant,
+    assistant: camelcaseKeys(res.data.assistant, { deep: true })
   };
 }
 

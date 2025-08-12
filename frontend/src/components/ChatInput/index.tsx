@@ -10,7 +10,6 @@ export default function ChatInput({ input, setInput, setChatHistory, loading, se
     const [style, setStyle] = useState({ width: 0, left: 0 })
     const textareaRef = useRef<HTMLTextAreaElement | null>(null)
     
-
     useEffect(() => {
         const updatePosition = () => {
             const container = document.getElementById('main-content')
@@ -98,20 +97,19 @@ export default function ChatInput({ input, setInput, setChatHistory, loading, se
                         role: 'assistant',
                         content: botMessage.content,
                         sources: botMessage.sources || [],
-                        flow_suggestion: botMessage.flow_suggestion,
-                        flow_suggestion_title: botMessage.flow_suggestion_title,
-                        match_confidence: botMessage.match_confidence,
+                        flowSuggestion: botMessage.flowSuggestion,
                     },
                 ]);
 
-                // Optional: detect flow suggestion from backend
-                if (botMessage.flow_suggestion) {
-                    const res = await fetch(`/api/flows/${botMessage.flow_suggestion}`);
+                // detect flow suggestion from backend
+                if (botMessage.flowSuggestion?.flowId) {
+                    console.log("Detected flow suggestion:", botMessage.flowSuggestion);
+                    const res = await fetch(`/api/flows/${botMessage.flowSuggestion?.flowId}`);
                     const flow = await res.json();
                     setFlowSuggestion({
-                        flowId: botMessage.flow_suggestion,
+                        flowId: botMessage.flowSuggestion?.flowId,
                         title: flow.name,
-                        confidence: botMessage.match_confidence,
+                        confidence: botMessage.matchConfidence,
                         sessionId: sessionId,
                     });
                 }

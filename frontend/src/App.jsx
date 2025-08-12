@@ -1,5 +1,4 @@
 // frontend/src/App.jsx
-import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
 import ChatPage from './pages/ChatPage'
@@ -23,7 +22,7 @@ function AuthenticatedApp() {
         path="/"
         element={
           <ShellLayout>
-            {({ currentSession }) => <ChatPage currentSession={currentSession} />}
+            <ChatPage />
           </ShellLayout>
         }
       />
@@ -40,10 +39,10 @@ function AuthenticatedApp() {
       <Route
         path="/flow"
         element={
-          <FlowShellLayout setNodes= {setNodes }>
-            
+          <FlowShellLayout setNodes={setNodes}>
+
             {({ currentSession }) => (
-              
+
               <FlowEditor
                 currentSession={currentSession}
                 nodes={nodes}

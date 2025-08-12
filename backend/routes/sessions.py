@@ -72,19 +72,19 @@ def add_message(session_id: UUID, message: ChatMessage):
     print("Generating assistant response...")
     try:
         response = build_chat_response(message.content, user_email="demo@example.com")  # TODO: pass real email
+        print("Assistant response:", response)
 
         assistant_message = {
             "session_id": str(session_id),
             "role": "assistant",
             "content": response.get("reply") or response.get("response"),
             "sources": response.get("sources", []),
-            "flow_suggestion": response.get("suggestedFlowId"),
-            "match_confidence": response.get("matchConfidence", 0.0)
+            "flow_suggestion": {"flowId": response.get("suggestedFlowId"), "title": response.get("suggestedFlowTitle"), "confidence": response.get("matchConfidence"), "sessionId": str(session_id)}
         }
 
         supabase.table("chat_messages").insert(assistant_message).execute()
         print(f"Assistant response generated and stored. Content: {assistant_message['content']}")
-        print("Assistant message flow suggestiob:", assistant_message.get("flow_suggestion"))
+        print("Assistant message flow suggestion:", assistant_message.get("flow_suggestion"))
         
         return {
             "user": inserted_user_message,

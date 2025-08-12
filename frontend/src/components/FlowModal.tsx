@@ -24,8 +24,11 @@ export default function FlowModal({ flowId, sessionId, onClose }: { flowId: stri
   const [inputs, setInputs] = useState<Record<string, unknown>>({});
   const navigate = useNavigate();
 
+  console.log('FlowModal props:', { flowId, sessionId });
+
   useEffect(() => {
     const fetchFlow = async () => {
+      console.log('Fetching flow with ID:', flowId);
       try {
         const res = await fetch(`/api/flows/${flowId}`);
         const data = await res.json();

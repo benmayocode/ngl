@@ -10,31 +10,38 @@ export default function ChatHistory({ chatHistory, loading, setShowFlowModal, se
     setSelectedSources(sources)
     setShowModal(true)
   }
-
   return (
-    <div className="mt-4 px-3" style={{ paddingBottom: '120px' }}>
-      {chatHistory.map((msg, index) => {
-        const isUser = msg.role === 'user'
-        const msgFlowSuggestion = msg.flow_suggestion
+    chatHistory === undefined ? (
+      <div className="text-center mt-5">
+        <p className="text-muted">No messages yet. Start a conversation!</p>
+      </div>
+    ) : (
+      <div className="mt-4 px-3" style={{ paddingBottom: '120px' }}>
+        {chatHistory.map((msg, index) => {
+          const isUser = msg.role === 'user'
+          const msgFlowSuggestionId = msg.flowSuggestion?.flowId
+          const msgFlowSuggestion = msg.flowSuggestion
 
-        return (
-          <div
-            key={index}
-            className={`d-flex mb-3 ${isUser ? 'justify-content-end' : 'justify-content-start'}`}
-          >
+          console.log('ChatHistory message:', msg)
 
-            {/* 💡 Flow suggestion block */}
-            {msgFlowSuggestion && (
+          return (
+            <div
+              key={index}
+              className={`d-flex mb-3 ${isUser ? 'justify-content-end' : 'justify-content-start'}`}
+            >
+
+            {msgFlowSuggestionId && (
               <div className="alert alert-info d-flex justify-content-between align-items-center">
                 <div>
-                  💡 I found a saved flow that might help: <strong>{msgFlowSuggestion.title}</strong><br />
+                  💡 I found a saved flow that might help: <strong>{msgFlowSuggestion?.title}</strong><br />
                   Would you like to run it?
                 </div>
                 <button
                   className="btn btn-sm btn-success ms-3"
                   onClick={() => {
+                    console.log('Running flow suggestion:', msgFlowSuggestion)
                     setActiveFlow(msgFlowSuggestion.flowId)
-                    setShowFlowModal(true)
+                    setShowFlowModal(prev => !prev)
                   }}
                 >
                   Run Flow
@@ -43,14 +50,12 @@ export default function ChatHistory({ chatHistory, loading, setShowFlowModal, se
               </div>
             )}
 
-            {!msgFlowSuggestion && (
-
+            {!msgFlowSuggestionId && (
               <div
                 className={`alert ${isUser ? 'alert-primary' : 'alert-secondary'} mb-0 chat-message`}
                 style={{ width: isUser ? '75%' : '100%' }}
               >
                 <p className="mb-0 mt-2">{msg.content}</p>
-
                 {!isUser && msg.sources.length > 0 && (
                   <button
                     className="btn btn-link btn-sm mt-2"
@@ -96,5 +101,6 @@ export default function ChatHistory({ chatHistory, loading, setShowFlowModal, se
         </div>
       )}
     </div>
+  )
   )
 }

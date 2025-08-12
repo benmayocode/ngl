@@ -6,8 +6,13 @@ import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import { deleteSession } from '../services/chatService'
 import UserBadge from './UserBadge'
+import { useShell } from './ShellLayout'
 
-export default function Sidebar({ selectedSessionId, onSelectSession }) {
+export default function Sidebar() {
+
+  const { currentSession, setChatHistory, onSelectSession } = useShell()
+  const selectedSessionId = currentSession?.id || null
+
   const { user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -38,7 +43,7 @@ export default function Sidebar({ selectedSessionId, onSelectSession }) {
 
   const handleDeleteSession = async (sessionId) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this chat?");
-    if (!confirmDelete) return;
+    if (!confirmDelete) {setChatHistory([]); return;} 
 
     await deleteSession(sessionId);
     setSessions((prev) => prev.filter((s) => s.id !== sessionId));

@@ -1,24 +1,21 @@
 // src/pages/ChatPage.tsx
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import ChatHistory from '../components/ChatHistory'
 import ChatInput from '../components/ChatInput'
 import FlowModal from '../components/FlowModal'
 import { fetchMessages } from '../services/chatService'
+import { useShell } from '../components/ShellLayout'
 
-import type { ChatSession, Message, FlowState, FlowSuggestion, SessionId } from '../types'
+import type { FlowState, FlowSuggestion } from '../types'
 
-interface ChatPageProps {
-  currentSession: ChatSession | null;
-}
+export default function ChatPage() {
+  const { currentSession, chatHistory, setChatHistory } = useShell()
 
-export default function ChatPage({ currentSession }: ChatPageProps) {
   const [input, setInput] = useState<string>('')
-  const [chatHistory, setChatHistory] = useState<Message[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [flowState, setFlowState] = useState<FlowState | null>(null)
   const [flowSuggestion, setFlowSuggestion] = useState<FlowSuggestion | null>(null)
   const [showFlowModal, setShowFlowModal] = useState<boolean>(false);
-  // activeFlow is a UUID
   const [activeFlow, setActiveFlow] = useState<string | null>(null);
 
   useEffect(() => {
@@ -27,6 +24,9 @@ export default function ChatPage({ currentSession }: ChatPageProps) {
     }
   }, [currentSession])
 
+  useEffect(() => {
+
+  }, [showFlowModal])
 
   return (
     <>
@@ -43,6 +43,7 @@ export default function ChatPage({ currentSession }: ChatPageProps) {
         flowSuggestion={flowSuggestion}
         setFlowSuggestion={setFlowSuggestion}
       />
+      {JSON.stringify(currentSession)}
       <ChatHistory
         chatHistory={chatHistory}
         loading={loading}

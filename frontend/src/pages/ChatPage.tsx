@@ -43,7 +43,6 @@ export default function ChatPage() {
         flowSuggestion={flowSuggestion}
         setFlowSuggestion={setFlowSuggestion}
       />
-      {JSON.stringify(currentSession)}
       <ChatHistory
         chatHistory={chatHistory}
         loading={loading}
@@ -55,6 +54,7 @@ export default function ChatPage() {
         setShowFlowModal={setShowFlowModal}
         setActiveFlow={setActiveFlow}
       />
+      
       {showFlowModal && activeFlow && (
         <FlowModal
           flowId={activeFlow}

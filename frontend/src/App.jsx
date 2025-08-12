@@ -31,7 +31,7 @@ function AuthenticatedApp() {
         path="/admin"
         element={
           <ShellLayout>
-            {({ currentSession }) => <AdminView currentSession={currentSession} />}
+            <AdminView />
           </ShellLayout>
         }
       />
@@ -42,7 +42,6 @@ function AuthenticatedApp() {
           <FlowShellLayout setNodes={setNodes}>
 
             {({ currentSession }) => (
-
               <FlowEditor
                 currentSession={currentSession}
                 nodes={nodes}

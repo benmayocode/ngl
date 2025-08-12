@@ -43,7 +43,7 @@ export default function Sidebar() {
 
   const handleDeleteSession = async (sessionId) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this chat?");
-    if (!confirmDelete) {setChatHistory([]); return;} 
+    if (!confirmDelete) { setChatHistory([]); return; }
 
     await deleteSession(sessionId);
     setSessions((prev) => prev.filter((s) => s.id !== sessionId));
@@ -115,6 +115,17 @@ export default function Sidebar() {
             {location.pathname === '/admin' ? 'Exit Admin View' : 'Admin View'}
           </button>
         )}
+
+        {/* Flow View button */}
+        <button
+          className="btn btn-info w-100 mb-4"
+          onClick={() => {
+            navigate(location.pathname === '/flow' ? '/' : '/flow')
+          }}
+        >
+          {location.pathname === '/flow' ? 'Exit Flow View' : 'Flow View'}
+        </button>
+
       </div>
 
       <div className="mt-auto">

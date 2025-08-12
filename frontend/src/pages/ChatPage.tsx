@@ -54,7 +54,6 @@ export default function ChatPage() {
         setShowFlowModal={setShowFlowModal}
         setActiveFlow={setActiveFlow}
       />
-      
       {showFlowModal && activeFlow && (
         <FlowModal
           flowId={activeFlow}

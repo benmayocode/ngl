@@ -34,6 +34,23 @@ export default function Sidebar() {
     load();
   }, [userEmail]);
 
+useEffect(() => {
+  if (loading || currentSession !== null) return;
+
+  if (sessions.length > 0) {
+    // pick the most recent session
+    const mostRecent = [...sessions].sort((a, b) => {
+      const aTime = new Date(a.updated_at || a.created_at || 0).getTime();
+      const bTime = new Date(b.updated_at || b.created_at || 0).getTime();
+      return bTime - aTime;
+    })[0];
+
+    onSelectSession(mostRecent);
+  } else {
+    // no sessions at all — create one
+    handleNewChat();
+  }
+}, [loading, currentSession, sessions, onSelectSession]);
 
   const handleNewChat = async () => {
     const session = await createSession({ userEmail, title: 'New Chat' })

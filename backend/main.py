@@ -24,14 +24,18 @@ from routes.flows import router as flows_router
 load_dotenv() 
 app = FastAPI()
 
+ALLOW_ORIGIN_REGEX = r"https://.*\.vercel\.app"
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://ngl-kappa-ten.vercel.app/"],
+    allow_origins=["http://localhost:5173", "https://ngl-kappa-ten.vercel.app"],
+    allow_origin_regex=ALLOW_ORIGIN_REGEX,    # optional
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=True,
-
 )
+
+
 
 @app.get("/api/health")
 def health():

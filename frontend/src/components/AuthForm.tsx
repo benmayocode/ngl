@@ -143,9 +143,6 @@ export default function AuthForm() {
             </button>
           </div>
 
-          <p className="text-muted small mt-3 mb-0 text-center">
-            By continuing you agree to everything I say, do, think and feel.
-          </p>
         </div>
       </div>
     </div>

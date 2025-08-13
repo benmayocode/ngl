@@ -22,8 +22,6 @@ export default function ChatHistory({ chatHistory, loading, setShowFlowModal, se
           const msgFlowSuggestionId = msg.flowSuggestion?.flowId
           const msgFlowSuggestion = msg.flowSuggestion
 
-          console.log('ChatHistory message:', msg)
-
           return (
             <div
               key={index}

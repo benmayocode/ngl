@@ -4,9 +4,12 @@ langgraph
 langchain_community
 fastapi
 uvicorn[standard]
+gunicorn
 python-dotenv
 PyMuPDF
 python-multipart
 numpy
 supabase
 bs4
+google-cloud-secret-manager
+python-dotenv

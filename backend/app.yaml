@@ -1,0 +1,15 @@
+runtime: python312
+
+entrypoint: gunicorn -w 2 -k uvicorn.workers.UvicornWorker main:app
+
+# Optional: tweak autoscaling / instance class
+automatic_scaling:
+  target_cpu_utilization: 0.65
+  min_instances: 1        # set >0 to reduce cold starts (costs a bit)
+  max_instances: 1
+instance_class: F2        # F1 is cheaper, F2 has more headroom
+
+env_variables:
+  SUPABASE_URL: "..."
+  SUPABASE_KEY: "..."
+  # add any other secrets your app needs

@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { deleteSession } from '../services/chatService'
 import UserBadge from './UserBadge'
 import { useShell } from './ShellLayout'
+import { setApiRoot, isRemote, getDefaults } from '../services/apiConfig'
 
 export default function Sidebar() {
 
@@ -22,35 +23,36 @@ export default function Sidebar() {
 
   const [sessions, setSessions] = useState([])
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const load = async () => {
-      if (!userEmail) return;
-      setLoading(true);
-      const sessions = await fetchSessions(userEmail);
-      setSessions(sessions);
-      setLoading(false);
-    };
-    load();
-  }, [userEmail]);
+  const [remoteMode, setRemoteMode] = useState<boolean>(isRemote())
 
 useEffect(() => {
-  if (loading || currentSession !== null) return;
-
-  if (sessions.length > 0) {
-    // pick the most recent session
-    const mostRecent = [...sessions].sort((a, b) => {
-      const aTime = new Date(a.updated_at || a.created_at || 0).getTime();
-      const bTime = new Date(b.updated_at || b.created_at || 0).getTime();
-      return bTime - aTime;
-    })[0];
-
-    onSelectSession(mostRecent);
-  } else {
-    // no sessions at all — create one
-    handleNewChat();
+  const load = async () => {
+    if (!userEmail) return
+    setLoading(true)
+    const sessions = await fetchSessions(userEmail)
+    setSessions(sessions)
+    setLoading(false)
   }
-}, [loading, currentSession, sessions, onSelectSession]);
+  load()
+}, [userEmail, remoteMode])
+
+  useEffect(() => {
+    if (loading || currentSession !== null) return;
+
+    if (sessions.length > 0) {
+      // pick the most recent session
+      const mostRecent = [...sessions].sort((a, b) => {
+        const aTime = new Date(a.updated_at || a.created_at || 0).getTime();
+        const bTime = new Date(b.updated_at || b.created_at || 0).getTime();
+        return bTime - aTime;
+      })[0];
+
+      onSelectSession(mostRecent);
+    } else {
+      // no sessions at all — create one
+      handleNewChat();
+    }
+  }, [loading, currentSession, sessions, onSelectSession]);
 
   const handleNewChat = async () => {
     const session = await createSession({ userEmail, title: 'New Chat' })
@@ -77,6 +79,14 @@ useEffect(() => {
   const handleLogout = async () => {
     await supabase.auth.signOut()
   }
+
+  const handleToggleApi = () => {
+    const { DEFAULT_REMOTE, DEFAULT_LOCAL } = getDefaults()
+    const next = !remoteMode
+    setRemoteMode(next)
+    setApiRoot(next ? DEFAULT_REMOTE : DEFAULT_LOCAL)
+    }
+
 
   return (
     <div className="d-flex flex-column h-100">
@@ -143,6 +153,18 @@ useEffect(() => {
           {location.pathname === '/flow' ? 'Exit Flow View' : 'Flow View'}
         </button>
 
+      </div>
+      <div className="form-check form-switch mb-3">
+        <input
+          id="apiTargetSwitch"
+          className="form-check-input"
+          type="checkbox"
+          checked={remoteMode}
+          onChange={handleToggleApi}
+        />
+        <label className="form-check-label" htmlFor="apiTargetSwitch">
+          {remoteMode ? 'Remote API' : 'Local API'}
+        </label>
       </div>
 
       <div className="mt-auto">

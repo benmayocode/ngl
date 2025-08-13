@@ -1,12 +1,7 @@
 // frontend/src/pages/FlowEditor.tsx
 import { useCallback, useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import ReactFlow, {
-  MiniMap,
-  Controls,
-  Background,
-  addEdge,
-} from 'reactflow';
+import { useSearchParams } from 'react-router-dom';
+import ReactFlow, { MiniMap, Controls, Background, addEdge } from 'reactflow';
 import 'reactflow/dist/style.css';
 
 import DevInspector from '../components/DevInspector';
@@ -16,16 +11,37 @@ import FlowControls from '../components/FlowControls';
 import FlowSaveModal from '../components/FlowSaveModal';
 import WebSearchNode from '../components/nodes/WebSearchNode';
 import ListingPageFinderNode from '../components/nodes/ListingPageFInderNode';
-import { rehydrateNodesFromRegistry } from '../components/nodes/registry';
-import { injectOnChangeHandlers } from '../components/nodes/registry';
+import { rehydrateNodesFromRegistry, injectOnChangeHandlers } from '../components/nodes/registry';
+import { getApiRoot } from '../services/apiConfig';
 
 const nodeTypes = {
   prompt: PromptNode,
   output: OutputNode,
   web_search: WebSearchNode,
   listing_page_finder: ListingPageFinderNode,
-
 };
+
+// --- helpers to build URLs from the current API root ---
+function joinPath(...parts: string[]) {
+  return parts
+    .filter(Boolean)
+    .map(p => p.replace(/(^\/+|\/+$)/g, ''))
+    .join('/');
+}
+function api(path = '') {
+  // getApiRoot() ends with /api (e.g. https://host/api)
+  const root = getApiRoot().replace(/\/+$/, '');
+  return `${root}/${joinPath(path)}`;
+}
+function wsUrl(path = '') {
+  const root = getApiRoot(); // e.g. https://host/api or http://localhost:8000/api
+  const u = new URL(root);
+  const proto = u.protocol === 'https:' ? 'wss:' : 'ws:';
+  // Preserve the /api prefix from the http root for WS too
+  const basePath = u.pathname; // e.g. "/api"
+  const fullPath = '/' + joinPath(basePath, path); // e.g. "/api/langgraph/execute"
+  return `${proto}//${u.host}${fullPath}`;
+}
 
 export default function FlowEditor({
   nodes,
@@ -35,18 +51,20 @@ export default function FlowEditor({
   setEdges,
   onEdgesChange
 }) {
-
   const [inputText, setInputText] = useState('');
-  const [flowData, setFlowData] = useState({});
+  const [flowData, setFlowData] = useState<any>({});
   const [output, setOutput] = useState('');
   const [showSaveModal, setShowSaveModal] = useState(false);
-  const [savedFlows, setSavedFlows] = useState([]);
+  const [savedFlows, setSavedFlows] = useState<any[]>([]);
   const [showInspector, setShowInspector] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const flowIdFromUrl = searchParams.get("id");
+  const flowIdFromUrl = searchParams.get('id');
 
-  const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
+  const onConnect = useCallback(
+    (params) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges]
+  );
 
   useEffect(() => {
     if (!flowData) return;
@@ -58,15 +76,14 @@ export default function FlowEditor({
       nodes: flowData.nodes,
       edges: flowData.edges,
     });
-
     setHasUnsavedChanges(current !== original);
   }, [nodes, edges, flowData]);
 
   const runFlow = () => {
-    const socket = new WebSocket('ws://localhost:8000/api/langgraph/execute');
+    const socket = new WebSocket(wsUrl('/langgraph/execute')); // was ws://localhost:8000/api/langgraph/execute
 
     socket.onopen = () => {
-      console.log("🟢 WebSocket connected. Sending flow...");
+      console.log('🟢 WebSocket connected. Sending flow...');
       socket.send(JSON.stringify({
         flow: { nodes, edges },
         input: inputText
@@ -75,7 +92,7 @@ export default function FlowEditor({
 
     socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
-      console.log("📬 WebSocket message received:", message);
+      console.log('📬 WebSocket message received:', message);
 
       if (message.type === 'status') {
         const { nodeId, status, detail } = message;
@@ -83,65 +100,51 @@ export default function FlowEditor({
           prev.map((n) =>
             n.id === nodeId
               ? {
-                ...n,
-                data: {
-                  ...n.data,
-                  status,
-                  error: status === 'error' ? detail?.message : undefined,
-                },
-              }
+                  ...n,
+                  data: {
+                    ...n.data,
+                    status,
+                    error: status === 'error' ? detail?.message : undefined,
+                  },
+                }
               : n
           )
         );
-      }
-
-      else if (message.type === 'complete') {
+      } else if (message.type === 'complete') {
         const { nodes: updatedNodes, edges: updatedEdges } = message.result;
-
-        // Merge in existing status & error data
         setNodes((prev) => {
           const statusMap = Object.fromEntries(
-            prev.map((n) => [n.id, {
-              status: n.data.status,
-              error: n.data.error,
-            }])
+            prev.map((n) => [
+              n.id,
+              { status: n.data.status, error: n.data.error }
+            ])
           );
-
           const merged = updatedNodes.map((node) => ({
             ...node,
-            data: {
-              ...node.data,
-              ...statusMap[node.id], // merge in status
-            }
+            data: { ...node.data, ...statusMap[node.id] },
           }));
-
           return injectOnChangeHandlers(
             rehydrateNodesFromRegistry(merged, setNodes),
             setNodes
           );
         });
-
         setEdges(updatedEdges);
-        console.log("✅ Flow execution complete");
-      }
-
-      else if (message.type === 'error') {
-        console.error("❌ Flow execution error:", message.message);
+        console.log('✅ Flow execution complete');
+      } else if (message.type === 'error') {
+        console.error('❌ Flow execution error:', message.message);
       }
     };
 
-
     socket.onerror = (err) => {
-      console.error("WebSocket error:", err);
+      console.error('WebSocket error:', err);
     };
 
     socket.onclose = () => {
-      console.log("🔌 WebSocket connection closed.");
+      console.log('🔌 WebSocket connection closed.');
     };
   };
 
-
-  const saveFlow = async (name, description) => {
+  const saveFlow = async (name: string, description: string) => {
     const payload = {
       name,
       description,
@@ -151,28 +154,19 @@ export default function FlowEditor({
     };
 
     try {
-      let res, json;
+      let res: Response, json: any;
       if (flowData?.id) {
-        res = await fetch(`http://localhost:8000/api/flows/${flowData.id}`, {
+        res = await fetch(api(`/flows/${flowData.id}`), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
         json = await res.json();
-        setSavedFlows((prevFlows) => {
-          return prevFlows.map((flow) => {
-            const isTargetFlow = flow.id === json.id;
-
-            if (isTargetFlow) {
-              const updatedFlow = json;
-              return updatedFlow;
-            }
-
-            return flow;
-          });
-        });
+        setSavedFlows((prevFlows) =>
+          prevFlows.map((flow) => (flow.id === json.id ? json : flow))
+        );
       } else {
-        res = await fetch('http://localhost:8000/api/flows/', {
+        res = await fetch(api('/flows/'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -183,7 +177,7 @@ export default function FlowEditor({
       }
 
       setFlowData(json);
-      return true; // ✅ indicate success
+      return true;
     } catch (err) {
       console.error('Error saving flow:', err);
       return false;
@@ -197,12 +191,12 @@ export default function FlowEditor({
     setSearchParams({});
   };
 
-  const handleLoadFlow = (flowId) => {
+  const handleLoadFlow = (flowId: string) => {
     const selected = savedFlows.find((f) => f.id === flowId);
     if (!selected) return;
 
     if (hasUnsavedChanges) {
-      const confirmLoad = window.confirm("You have unsaved changes. Load new flow anyway?");
+      const confirmLoad = window.confirm('You have unsaved changes. Load new flow anyway?');
       if (!confirmLoad) return;
     }
 
@@ -213,11 +207,10 @@ export default function FlowEditor({
     setSearchParams({ id: flowId });
   };
 
-
   useEffect(() => {
     const init = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/flows/');
+        const res = await fetch(api('/flows/'));
         const json = await res.json();
         const flows = Array.isArray(json) ? json : [];
         setSavedFlows(flows);
@@ -271,7 +264,7 @@ export default function FlowEditor({
           <Controls />
           <Background gap={12} size={1} />
         </ReactFlow>
-        {/* 🛠️ Dev Tools Button */}
+
         <button
           onClick={() => setShowInspector(true)}
           style={{

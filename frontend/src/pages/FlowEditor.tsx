@@ -29,8 +29,8 @@ function joinPath(...parts: string[]) {
     .join('/');
 }
 function api(path = '') {
-  // getApiRoot() ends with /api (e.g. https://host/api)
-  const root = getApiRoot().replace(/\/+$/, '');
+  const root = getApiRoot().replace(/\/+$/, '');; // e.g. https://host/api or http://localhost:8000/api
+  console.log('API root:', root);
   return `${root}/${joinPath(path)}`;
 }
 function wsUrl(path = '') {

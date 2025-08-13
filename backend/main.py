@@ -13,6 +13,7 @@ load_secrets_into_environ([
     "AZURE_OPENAI_KEY",
     "AZURE_OPENAI_API_VERSION",
     "AZURE_OPENAI_ENDPOINT",
+    "SERPER_API_KEY"
 ], force=True)
 
 from routes.documents import router as documents_router

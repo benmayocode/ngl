@@ -1,7 +1,11 @@
 // frontend/src/pages/FlowEditor.tsx
 import { useCallback, useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import ReactFlow, { MiniMap, Controls, Background, addEdge } from 'reactflow';
+import ReactFlow, { MiniMap, Controls, Background, addEdge, Connection, Edge, Node } from 'reactflow';
+import { NODE_DEFS, NodeDef } from '../components/nodes/registry';
+import { isCompatible } from '../types';
+
+
 import 'reactflow/dist/style.css';
 
 import DevInspector from '../components/DevInspector';
@@ -11,6 +15,8 @@ import FlowControls from '../components/FlowControls';
 import FlowSaveModal from '../components/FlowSaveModal';
 import WebSearchNode from '../components/nodes/WebSearchNode';
 import ListingPageFinderNode from '../components/nodes/ListingPageFInderNode';
+import FetchPagesNode from '../components/nodes/FetchPagesNode';
+import ExtractFromPagesNode from '../components/nodes/ExtractFromPagesNode';
 import { rehydrateNodesFromRegistry, injectOnChangeHandlers } from '../components/nodes/registry';
 import { getApiRoot } from '../services/apiConfig';
 
@@ -19,7 +25,41 @@ const nodeTypes = {
   output: OutputNode,
   web_search: WebSearchNode,
   listing_page_finder: ListingPageFinderNode,
+  fetch_pages: FetchPagesNode,
+  extract_from_pages: ExtractFromPagesNode,
+
 };
+
+function getPortType(node: Node, handleId: string, isSource: boolean) {
+  const def = NODE_DEFS[node.type as keyof typeof NODE_DEFS] as NodeDef | undefined;
+  if (!def) return null;
+  return isSource ? def.outputs[handleId]?.type : def.inputs[handleId]?.type;
+}
+
+const isValidConnection = (conn: Connection, nodes: Node[]) => {
+  const source = nodes.find(n => n.id === conn.source);
+  const target = nodes.find(n => n.id === conn.target);
+  if (!source || !target || !conn.sourceHandle || !conn.targetHandle) return false;
+
+  const outType = getPortType(source, conn.sourceHandle, true);
+  const inType = getPortType(target, conn.targetHandle, false);
+  if (!outType || !inType) return false;
+
+  return isCompatible(outType, inType);
+};
+
+function suggestAdapter(out, need) {
+  // example rules:
+  if (out?.kind === 'list' && out.of?.kind === 'text' && need?.kind === 'list' && need.of?.kind === 'link') {
+    return 'text_urls_to_links';
+  }
+  if (need?.kind === 'list' && out?.kind !== 'list') {
+    return 'to_list';
+  }
+  return null;
+}
+
+
 
 // --- helpers to build URLs from the current API root ---
 function joinPath(...parts: string[]) {
@@ -61,10 +101,59 @@ export default function FlowEditor({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const flowIdFromUrl = searchParams.get('id');
 
-  const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
-  );
+  const onConnect = useCallback((conn: Connection) => {
+    const source = nodes.find(n => n.id === conn.source);
+    const target = nodes.find(n => n.id === conn.target);
+    if (!source || !target) return;
+
+    const outType = getPortType(source, conn.sourceHandle || 'out', true);
+    const inType = getPortType(target, conn.targetHandle || 'in', false);
+    if (!outType || !inType) return;
+
+    if (isCompatible(outType, inType)) {
+      setEdges((eds) => addEdge(conn, eds)); // no adapter needed
+      return;
+    }
+
+    const adapterType = suggestAdapter(outType, inType);
+    if (!adapterType) {
+      // show toast/snackbar if you like
+      return;
+    }
+
+    // Create adapter node roughly midway between source & target
+    const midX = (source.position.x + target.position.x) / 2;
+    const midY = (source.position.y + target.position.y) / 2;
+    const adapterId = `adapter_${Date.now()}`;
+
+    setNodes((nds) => [
+      ...nds,
+      {
+        id: adapterId,
+        type: adapterType,
+        position: { x: midX, y: midY },
+        data: { label: NODE_DEFS[adapterType]?.label || 'Adapter' },
+      },
+    ]);
+
+    setEdges((eds) => [
+      ...eds,
+      {
+        id: `e-${source.id}-${adapterId}`,
+        source: source.id,
+        target: adapterId,
+        sourceHandle: conn.sourceHandle || 'out',
+        targetHandle: 'in',
+      },
+      {
+        id: `e-${adapterId}-${target.id}`,
+        source: adapterId,
+        target: target.id,
+        sourceHandle: 'out',
+        targetHandle: conn.targetHandle || 'in',
+      },
+    ]);
+  }, [nodes, setNodes, setEdges]);
 
   useEffect(() => {
     if (!flowData) return;
@@ -100,13 +189,13 @@ export default function FlowEditor({
           prev.map((n) =>
             n.id === nodeId
               ? {
-                  ...n,
-                  data: {
-                    ...n.data,
-                    status,
-                    error: status === 'error' ? detail?.message : undefined,
-                  },
-                }
+                ...n,
+                data: {
+                  ...n.data,
+                  status,
+                  error: status === 'error' ? detail?.message : undefined,
+                },
+              }
               : n
           )
         );
@@ -259,6 +348,7 @@ export default function FlowEditor({
           onConnect={onConnect}
           nodeTypes={nodeTypes}
           fitView
+          isValidConnection={(c) => isValidConnection(c, nodes)}
         >
           <MiniMap />
           <Controls />

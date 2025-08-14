@@ -42,8 +42,8 @@ export default function ListingPageFinderNode({ data, isConnectable }) {
         </div>
       )}
 
-      <Handle type="target" position={Position.Left} isConnectable={isConnectable} />
-      <Handle type="source" position={Position.Right} isConnectable={isConnectable} />
+      <Handle id="in" type="target" position={Position.Left} isConnectable={isConnectable} />
+      <Handle id="out" type="source" position={Position.Right} isConnectable={isConnectable} />
     </div>
   );
 }

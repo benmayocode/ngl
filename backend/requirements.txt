@@ -13,3 +13,5 @@ supabase
 bs4
 google-cloud-secret-manager
 python-dotenv
+beautifulsoup4
+httpx

@@ -1,3 +1,4 @@
+// frontend/src/components/nodes/OutputNode.jsx
 import { useState, useMemo } from 'react';
 import { Handle, Position } from 'reactflow';
 import JSON5 from 'json5';
@@ -35,59 +36,6 @@ function parseLenientJsonString(s) {
 
   // Give up → plain text
   return { value: s, lang: 'text' };
-}
-
-
-function safePretty(out) {
-  // 1) Already object/array
-  if (out && typeof out === 'object') {
-    return { text: JSON.stringify(out, null, 2), lang: 'json' };
-  }
-
-  // 2) String cases
-  if (typeof out === 'string') {
-    let t = out.trim();
-
-    // normalize smart quotes → straight quotes (common from copy/paste)
-    t = t.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
-
-    // If it's quoted JSON (JSON-escaped JSON), unescape once
-    // e.g. "\"{\\\"a\\\":1}\"" → "{\"a\":1}" → parse again
-    try {
-      if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
-        const unquoted = JSON.parse(t); // removes the outer quotes/escapes
-        if (looksJsonLike(unquoted)) {
-          try {
-            const parsedTwice = JSON.parse(unquoted);
-            return { text: JSON.stringify(parsedTwice, null, 2), lang: 'json' };
-          } catch {
-            // if second parse fails, pretty-print the unquoted string as text
-            return { text: unquoted, lang: 'text' };
-          }
-        }
-        // not JSON after unquoting -> show unquoted as text
-        return { text: unquoted, lang: 'text' };
-      }
-    } catch {
-      // not a valid JSON string literal; continue
-    }
-
-    // Raw JSON string (not double-encoded)
-    if (looksJsonLike(t)) {
-      try {
-        const parsed = JSON.parse(t);
-        return { text: JSON.stringify(parsed, null, 2), lang: 'json' };
-      } catch {
-        // fall through
-      }
-    }
-
-    // Fallback: plain text
-    return { text: out, lang: 'text' };
-  }
-
-  // 3) Everything else
-  return { text: String(out ?? ''), lang: 'text' };
 }
 
 
@@ -218,8 +166,8 @@ export default function OutputNode({ data, isConnectable }) {
         </div>
       </div>
 
-      <Handle type="target" position={Position.Left} isConnectable={isConnectable} />
-      <Handle type="source" position={Position.Right} isConnectable={isConnectable} />
+      <Handle id="in" type="target" position={Position.Left} isConnectable={isConnectable} />
+      <Handle id="out" type="source" position={Position.Right} isConnectable={isConnectable} />
     </div>
   );
 }

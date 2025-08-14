@@ -5,10 +5,15 @@ import { outputNodeDefinition } from './output';
 import { listingPageFinderNodeDefinition } from './listingPageFinder';
 import { webSearchNodeDefinition } from './webSearch';
 
+import { fetchPagesNodeDefinition } from './fetchPagesNode';
+import { extractFromPagesNodeDefinition } from './extractFromPages';
+
 export const NODE_DEFINITIONS = [
   inputNodeDefinition,
-  promptNodeDefinition,
-  listingPageFinderNodeDefinition,
-  outputNodeDefinition,
   webSearchNodeDefinition,
+  fetchPagesNodeDefinition,
+  extractFromPagesNodeDefinition,
+  listingPageFinderNodeDefinition,
+  promptNodeDefinition,
+  outputNodeDefinition,
 ];

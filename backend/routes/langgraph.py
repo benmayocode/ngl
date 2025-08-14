@@ -1,6 +1,6 @@
 # backend/routes/langgraph.py
 from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisconnect
-from services.langgraph_runner import run_flow_with_updates
+from services.langgraph_runner_streaming import run_flow_with_updates
 from uuid import UUID
 from typing import Dict, Any
 from services.flow_storage import get_flow_by_id

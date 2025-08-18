@@ -1,4 +1,4 @@
-// frontend/src/components/nodes/fetchPagesNode.js
+// frontend/src/components/nodes/fetchPages.js
 
 export const fetchPagesNodeDefinition = {
   type: 'fetch_pages',
